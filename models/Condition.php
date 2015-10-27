@@ -180,7 +180,7 @@ class Condition extends \yii\db\ActiveRecord
 		 * @return boolean
 		 */
 		public static function amiathome(){
-			$ip = '192.168.192.3';
+			$ip = '192.168.192.6';
 			
 			$cmd = sprintf('ping -c 2 -w 2 %s', $ip); // -c number of times, and -w timeout in seconds
 			exec(escapeshellcmd($cmd), $output, $return_code);

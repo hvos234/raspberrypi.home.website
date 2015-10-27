@@ -108,4 +108,27 @@ class Task extends \yii\db\ActiveRecord
 
 			return end($output);
 		}
+		
+		public function getTaskBetweenDate($between, $from_device_id = '', $to_device_id = '', $action_id = ''){
+			$where = [];
+			if(!empty($from_device_id)){
+				$where['from_device_id'] = $from_device_id;
+			}
+			if(!empty($to_device_id)){
+				$where['to_device_id'] = $to_device_id;
+			}
+			if(!empty($action_id)){
+				$where['action_id'] = $action_id;
+			}
+			$tasks = Task::find()->where($where)->andwhere(['between', 'created_at', $between['from'], $between['to']])->asArray()->all();
+			foreach ($tasks as $key => $task){
+				$tasks[$key]['data'] = $this->data_encode($task['data']);
+			}
+			
+			return $tasks;
+		}
+		
+		public function data_encode($data){
+			return json_encode($data, true);
+		}
 }

@@ -224,7 +224,7 @@ class Data extends Model {
 		echo('$this->action_id: ' . $this->action_id) . '<br/>' . PHP_EOL;
 		echo('$this->getChartIntervalGroupBy(): ' . $this->getChartIntervalGroupBy()) . '<br/>' . PHP_EOL;*/
 		
-		$tasks = Task::find()
+		/*$tasks = Task::find()
 			->select([
 				'id',
 				'from_device_id',
@@ -246,7 +246,16 @@ class Data extends Model {
 			->groupBy($this->getChartIntervalGroupBy())
 			->orderBy('created_at')
 			->asArray()
-			->all();
+			->all();*/		
+		$taskmodel = new Task();
+		$devicemodel = new Device();
+		
+		$tasks = $taskmodel->getTaskBetweenDate($this->getChartDateFromTo(), $devicemodel->getDeviceMaster()[0]['id'], $this->device_id, $this->action_id);
+		
+		
+		echo('$tasks: <pre>');
+		print_r($tasks);
+		echo('</pre>');
 		
 		//echo('date(Y-m-d 00:00:00);: ' . date('Y-m-d')) . '<br/>' . PHP_EOL;
 		
@@ -321,9 +330,9 @@ class Data extends Model {
 		foreach($tasks as $key => $task){
 			$xAxis['categories'][] = date('H', strtotime($task['created_at']));
 			//$series[0]['data'][] = $task['avgTemp'];
-			$series[0]['data'][] = number_format((float)$task['avgTemp'], 2, '.', '');
+			$series[0]['data'][] = number_format((float)$task['data']['t'], 2, '.', '');
 			//$series[1]['data'][] = $task['avgHum'];
-			$series[1]['data'][] = number_format((float)$task['avgHum'], 2, '.', '');
+			$series[1]['data'][] = number_format((float)$task['data']['h'], 2, '.', '');
 		}
 		
 		// create from the data a string (for highcharts to read the values good, its a javascript thing)

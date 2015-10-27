@@ -24,8 +24,6 @@ except IndexError:
    print "error;no action"
    sys.exit(0)
 
-msg = "get action"
-
 topipe = int(to) - 1
 
 import time
@@ -48,7 +46,7 @@ pipes = [0xE1F0F0F0E1, 0xD2F0F0F0D2, 0xF0B2F0F0B2, 0xF0C3F0F0C3, 0xF0F0E4F0E4, 0
 # variables
 millis = lambda: int(round(time.time() * 1000))
 waiting_timeout = 3000
-payload = "{\"fr\":" + fr + ",\"to\":" + to + ",\"ac\":" + ac + ",\"ms\":'" + msg + "'}" # can not send task it gets to big
+payload = "{\"fr\":\"" + fr + "\",\"to\":\"" + to + "\",\"ac\":\"" + ac + "\"}" # can not send task it gets to big
 
 # start radio
 radio.begin()
@@ -92,7 +90,7 @@ while (not radio.available()) and (not timeout):
             timeout = True
 
 if timeout:
-    print "error;timeout"
+    print "{\"error\":\"timeout\"}"
 else:
     # Grab the response, compare, and send to debugging spew
     len = radio.getDynamicPayloadSize()
