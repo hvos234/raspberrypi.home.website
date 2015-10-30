@@ -4,11 +4,11 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model app\models\ConditionSearch */
+/* @var $model app\models\RuleConditionSearch */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
-<div class="condition-search">
+<div class="rule-condition-search">
 
     <?php $form = ActiveForm::begin([
         'action' => ['index'],
@@ -24,6 +24,10 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'equation') ?>
 
     <?= $form->field($model, 'value') ?>
+
+    <?php // echo $form->field($model, 'rule_id') ?>
+
+    <?php // echo $form->field($model, 'weight') ?>
 
     <?php // echo $form->field($model, 'created_at') ?>
 

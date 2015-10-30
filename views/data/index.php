@@ -38,7 +38,8 @@ $this->params['breadcrumbs'][] = $this->title;
 	
 	?>
 	
-	<?php $form = ActiveForm::begin(['type' => 'inline']); ?>
+	<?php //$form = ActiveForm::begin(['type' => 'inline']); ?>
+	<?php $form = ActiveForm::begin(['layout' => 'horizontal']); ?>
 	
 		<?php /*
 $form = ActiveForm::begin([

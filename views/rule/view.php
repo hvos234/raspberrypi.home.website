@@ -4,13 +4,13 @@ use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
-/* @var $model app\models\Condition */
+/* @var $model app\models\Rule */
 
 $this->title = $model->name;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Conditions'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Rules'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="condition-view">
+<div class="rule-view">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -30,9 +30,8 @@ $this->params['breadcrumbs'][] = $this->title;
         'attributes' => [
             'id',
             'name',
-            'condition',
-            'equation',
-            'value',
+            'description:ntext',
+						'weight',
             'created_at',
             'updated_at',
         ],

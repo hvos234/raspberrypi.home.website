@@ -3,16 +3,19 @@
 namespace app\controllers;
 
 use Yii;
-use app\models\Condition;
-use app\models\ConditionSearch;
+use app\models\Rule;
+use app\models\RuleSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
+// AccessControl is used form controlling access in behaviors()
+use yii\filters\AccessControl;
+
 /**
- * ConditionController implements the CRUD actions for Condition model.
+ * RuleController implements the CRUD actions for Rule model.
  */
-class ConditionController extends Controller
+class RuleController extends Controller
 {
     public function behaviors()
     {
@@ -23,18 +26,40 @@ class ConditionController extends Controller
                     'delete' => ['post'],
                 ],
             ],
-        ];
+						// this will allow authenticated users to access the create update and delete
+						// and deny all other users from accessing these three actions.
+						'access' => [
+							'class' => AccessControl::className(),
+							//'only' => ['create', 'update', 'delete'],
+							'rules' => [
+									// deny all POST requests
+									/*[
+											'allow' => false,
+											'verbs' => ['POST'],
+									],*/
+									// allow authenticated users
+									[
+											'allow' => true,
+											'roles' => ['@'],
+									],
+									// everything else is denied
+							],
+						],
+					];
     }
 
     /**
-     * Lists all Condition models.
+     * Lists all Rule models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new ConditionSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
+        $searchModel = new RuleSearch();
+				$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+				$dataProvider->setSort([
+					'defaultOrder' => ['weight' => SORT_ASC]
+				]);
+				
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
@@ -42,7 +67,7 @@ class ConditionController extends Controller
     }
 
     /**
-     * Displays a single Condition model.
+     * Displays a single Rule model.
      * @param integer $id
      * @return mixed
      */
@@ -54,13 +79,13 @@ class ConditionController extends Controller
     }
 
     /**
-     * Creates a new Condition model.
+     * Creates a new Rule model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new Condition();
+        $model = new Rule();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -72,7 +97,7 @@ class ConditionController extends Controller
     }
 
     /**
-     * Updates an existing Condition model.
+     * Updates an existing Rule model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
@@ -82,8 +107,7 @@ class ConditionController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            //return $this->redirect(['view', 'id' => $model->id]);
-            return $this->redirect(['index']);
+            return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
                 'model' => $model,
@@ -92,7 +116,7 @@ class ConditionController extends Controller
     }
 
     /**
-     * Deletes an existing Condition model.
+     * Deletes an existing Rule model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
@@ -103,34 +127,17 @@ class ConditionController extends Controller
 
         return $this->redirect(['index']);
     }
-		
-		public function actionAmiathome(){
-			if(Condition::amiathome()){
-				Yii::$app->getSession()->setFlash('amiathome', Yii::t('app', 'Yes, I am at Home !'));
-			}else {
-				Yii::$app->getSession()->setFlash('amiathome', Yii::t('app', 'No, I am at Home !'));
-			}
-			
-			return $this->redirect(['index']);
-		}
-		
-		public function actionExecute($id){
-			$model = new Condition();
-			$model->execute($id);
-			
-			return $this->redirect(['index']);
-		}
 
-		/**
-     * Finds the Condition model based on its primary key value.
+    /**
+     * Finds the Rule model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Condition the loaded model
+     * @return Rule the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Condition::findOne($id)) !== null) {
+        if (($model = Rule::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

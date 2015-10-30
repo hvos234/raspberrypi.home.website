@@ -4,23 +4,25 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model app\models\Condition */
+/* @var $model app\models\RuleCondition */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
-<div class="condition-form">
+<div class="rule-condition-form">
 
     <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 
-    <?php //<?= $form->field($model, 'condition')->textInput(['maxlength' => true]) ?>
-		<?= $form->field($model, 'condition')->dropDownList($model->conditions); ?>
+    <?= $form->field($model, 'condition')->textInput(['maxlength' => true]) ?>
 
-    <?php //<?= $form->field($model, 'equation')->textInput(['maxlength' => true]) ?>
-		<?= $form->field($model, 'equation')->dropDownList($model->equations); ?>
+    <?= $form->field($model, 'equation')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'value')->textInput(['maxlength' => true]) ?>
+
+    <?php //<?= $form->field($model, 'rule_id')->textInput() ?>
+
+    <?= $form->field($model, 'weight')->textInput() ?>
 
     <?php //<?= $form->field($model, 'created_at')->textInput() ?>
 

@@ -3,16 +3,16 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $model app\models\Condition */
+/* @var $model app\models\RuleCondition */
 
 $this->title = Yii::t('app', 'Update {modelClass}: ', [
-    'modelClass' => 'Condition',
+    'modelClass' => 'Rule Condition',
 ]) . ' ' . $model->name;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Conditions'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Rule Conditions'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Update');
 ?>
-<div class="condition-update">
+<div class="rule-condition-update">
 
     <h1><?= Html::encode($this->title) ?></h1>
 

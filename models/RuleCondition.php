@@ -10,17 +10,19 @@ use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
 
 /**
- * This is the model class for table "{{%condition}}".
+ * This is the model class for table "{{%rule_condition}}".
  *
  * @property integer $id
  * @property string $name
  * @property string $condition
  * @property string $equation
  * @property string $value
+ * @property integer $rule_id
+ * @property integer $weight
  * @property string $created_at
  * @property string $updated_at
  */
-class Condition extends \yii\db\ActiveRecord
+class RuleCondition extends \yii\db\ActiveRecord
 {
 	public $conditions = [
 		// date
@@ -65,7 +67,7 @@ class Condition extends \yii\db\ActiveRecord
 	];
 	
 	public $weights = [];
-
+	
 	public function init() {
 		// add all task defined as Task::execute to the conditions
 		$modelTaskDefined = new TaskDefined();
@@ -109,19 +111,19 @@ class Condition extends \yii\db\ActiveRecord
 		}
 		
 		// create weights from 0 to 10
-		for($weight = 0; $weight >= 10; $weight++){
+		for($weight = 0; $weight <= 10; $weight++){
 			$this->weights[$weight] = $weight;
 		}
 		
 		parent::init();
 	}
-
-		/**
+	
+    /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return '{{%condition}}';
+        return '{{%rule_condition}}';
     }
 
     /**
@@ -130,10 +132,11 @@ class Condition extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'condition', 'equation', 'value'], 'required'],
+            [['name', 'condition', 'equation', 'value', 'rule_id', 'weight'], 'required'],
+            [['rule_id', 'weight'], 'integer'],
             [['created_at', 'updated_at'], 'safe'],
-            [['name', 'value'], 'string', 'max' => 255],
-            [['condition'], 'string', 'max' => 128],
+            [['name'], 'string', 'max' => 255],
+            [['condition', 'value'], 'string', 'max' => 128],
             [['equation'], 'string', 'max' => 4]
         ];
     }
@@ -144,11 +147,13 @@ class Condition extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
+            'id' => Yii::t('app', 'Id'),
             'name' => Yii::t('app', 'Name'),
             'condition' => Yii::t('app', 'Condition'),
             'equation' => Yii::t('app', 'Equation'),
             'value' => Yii::t('app', 'Value'),
+            'rule_id' => Yii::t('app', 'Id Rule'),
+            'weight' => Yii::t('app', 'Weight'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
         ];
@@ -156,11 +161,11 @@ class Condition extends \yii\db\ActiveRecord
 
     /**
      * @inheritdoc
-     * @return ConditionQuery the active query used by this AR class.
+     * @return RuleConditionQuery the active query used by this AR class.
      */
     public static function find()
     {
-        return new ConditionQuery(get_called_class());
+        return new RuleConditionQuery(get_called_class());
     }
 		
 		/**
@@ -178,98 +183,5 @@ class Condition extends \yii\db\ActiveRecord
 						'value' => new Expression('NOW()'),
 					],
 			 ];
-		}
-		
-		/**
-		 * amiathome
-		 * Is a static function so i can use it in the conditions
-		 * 
-		 * @return boolean
-		 */
-		public static function amiathome(){
-			$ip = '192.168.192.6';
-			
-			$cmd = sprintf('ping -c 2 -w 2 %s', $ip); // -c number of times, and -w timeout in seconds
-			exec(escapeshellcmd($cmd), $output, $return_code);
-			
-			if(0 == $return_code) { 
-				return true;
-			}
-			
-			return false;
-		}
-		
-		/**
-		 * 
-		 * @param type $id
-		 * @return boolean
-		 */
-		public function execute($id){
-			$model = Condition::findOne($id);
-			
-			/*$date = [
-				'class' => 'php',
-				'function' => 'date',
-				'parameter' => 'Y',
-			];
-			
-			echo('$date: ' . json_encode($date)) . '<br/>' . PHP_EOL;
-			
-			$class = [
-				'class' => 'Task',
-				'function' => 'execute',
-				'parameter' => array('1','4','3'),
-			];
-			
-			echo('$class: ' . json_encode($class)) . '<br/>' . PHP_EOL;
-			
-			$class = [
-				'class' => 'Condition',
-				'function' => 'amiathome',
-				'parameter' => '',
-			];
-			
-			echo('$class: ' . json_encode($class)) . '<br/>' . PHP_EOL;*/
-			
-			echo('$model->condition: ' . $model->condition) . '<br/>' . PHP_EOL;
-			
-			$array = json_decode($model->condition, true);
-			echo('<pre>');
-			print_r($array);
-			echo('</pre>');
-			
-			$value = '';
-			switch($array['class']){
-				case 'php':
-					switch($array['function']){
-						case 'date':
-							$value = date($array['parameter']);
-							break;
-					}
-					break;
-				
-				default:
-					echo('app\models\\' . $array['class']);
-					$value = call_user_func_array(array('app\models\\' . $array['class'], $array['function']), $array['parameter']);
-					//$this->conditions[$json] = sprintf('%s, %s', $array['class'], $condition);
-			}
-			echo('var_dump'). '<br/>' . PHP_EOL;
-			var_dump(json_decode($value));
-			echo('$value: ' . $value) . '<br/>' . PHP_EOL;
-			
-			/*$condition = '';	
-			//$condition = eval('$condition = ' . $model->condition . ';');
-			$condition = 'Task->execute(1,4,3)';
-			
-			
-			
-			$value = call_user_func(array('app\models\Condition', 'amiathome'));
-			var_dump($value);
-			$value = call_user_func(array('app\models\Condition', 'amiathome'));
-			var_dump($value);
-			//eval('use app\models\Condition; && $condition =' . $model->condition . '();');
-			//$condition = call_user_func($model->condition);
-			echo('$condition: ' . $condition) . '<br/>' . PHP_EOL;*/
-			exit();
 		}
 }

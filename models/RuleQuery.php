@@ -3,11 +3,11 @@
 namespace app\models;
 
 /**
- * This is the ActiveQuery class for [[Condition]].
+ * This is the ActiveQuery class for [[Rule]].
  *
- * @see Condition
+ * @see Rule
  */
-class ConditionQuery extends \yii\db\ActiveQuery
+class RuleQuery extends \yii\db\ActiveQuery
 {
     /*public function active()
     {
@@ -17,7 +17,7 @@ class ConditionQuery extends \yii\db\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return Condition[]|array
+     * @return Rule[]|array
      */
     public function all($db = null)
     {
@@ -26,7 +26,7 @@ class ConditionQuery extends \yii\db\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return Condition|array|null
+     * @return Rule|array|null
      */
     public function one($db = null)
     {

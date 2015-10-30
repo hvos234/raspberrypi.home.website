@@ -5,12 +5,12 @@ namespace app\models;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Condition;
+use app\models\RuleCondition;
 
 /**
- * ConditionSearch represents the model behind the search form about `app\models\Condition`.
+ * RuleConditionSearch represents the model behind the search form about `app\models\RuleCondition`.
  */
-class ConditionSearch extends Condition
+class RuleConditionSearch extends RuleCondition
 {
     /**
      * @inheritdoc
@@ -18,7 +18,7 @@ class ConditionSearch extends Condition
     public function rules()
     {
         return [
-            [['id'], 'integer'],
+            [['id', 'rule_id', 'weight'], 'integer'],
             [['name', 'condition', 'equation', 'value', 'created_at', 'updated_at'], 'safe'],
         ];
     }
@@ -41,7 +41,7 @@ class ConditionSearch extends Condition
      */
     public function search($params)
     {
-        $query = Condition::find();
+        $query = RuleCondition::find();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -57,6 +57,8 @@ class ConditionSearch extends Condition
 
         $query->andFilterWhere([
             'id' => $this->id,
+            'rule_id' => $this->rule_id,
+            'weight' => $this->weight,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);

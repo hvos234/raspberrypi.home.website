@@ -9,7 +9,6 @@ use yii\grid\GridView;
 
 $this->title = Yii::t('app', 'Task Defineds');
 //$this->params['breadcrumbs'][] = $this->title;
-
 ?>
 <div class="task-defined-index">
 
