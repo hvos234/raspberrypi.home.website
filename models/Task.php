@@ -105,7 +105,13 @@ class Task extends \yii\db\ActiveRecord
 			// sudo visudo and add exception www-data ALL=(ALL) NOPASSWD: ALL, and use sudo
 			$cmd = 'sudo python /var/www/html/home/commands/Task.py ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
 			exec(escapeshellcmd($cmd), $output, $return_code);
-
+			
+			// if nothing good is returned
+			if(0 !== $return_code or empty($output)){
+				// retry
+				exec(escapeshellcmd($cmd), $output, $return_code);
+			}
+			
 			return end($output);
 		}
 		

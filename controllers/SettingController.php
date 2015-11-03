@@ -3,8 +3,8 @@
 namespace app\controllers;
 
 use Yii;
-use app\models\Rule;
-use app\models\RuleSearch;
+use app\models\Setting;
+use app\models\SettingSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -12,12 +12,10 @@ use yii\filters\VerbFilter;
 // AccessControl is used form controlling access in behaviors()
 use yii\filters\AccessControl;
 
-use app\models\RuleCondition;
-
 /**
- * RuleController implements the CRUD actions for Rule model.
+ * SettingController implements the CRUD actions for Setting model.
  */
-class RuleController extends Controller
+class SettingController extends Controller
 {
     public function behaviors()
     {
@@ -51,17 +49,14 @@ class RuleController extends Controller
     }
 
     /**
-     * Lists all Rule models.
+     * Lists all Setting models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new RuleSearch();
-				$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-				$dataProvider->setSort([
-					'defaultOrder' => ['weight' => SORT_ASC]
-				]);
-				
+        $searchModel = new SettingSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
@@ -69,8 +64,8 @@ class RuleController extends Controller
     }
 
     /**
-     * Displays a single Rule model.
-     * @param integer $id
+     * Displays a single Setting model.
+     * @param string $id
      * @return mixed
      */
     public function actionView($id)
@@ -81,50 +76,27 @@ class RuleController extends Controller
     }
 
     /**
-     * Creates a new Rule model.
+     * Creates a new Setting model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new Rule();
-				
-				// create 10 RuleCondition models
-				$modelsRuleCondition[] = new RuleCondition();
-				for($i=0; $i <= 9; $i++){
-					$modelsRuleCondition[$i] = new RuleCondition();
-					// if it is not the first one, there must be always one condition
-					if(0 < $i){
-						$modelsRuleCondition[$i]->name = '- None -';
-						$modelsRuleCondition[$i]->value = '- None -';
-						$modelsRuleCondition[$i]->weight = $i;
-					}
-				}
-				
-				if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post())){
-					$isValid = $model->validate();
-					$isValid = RuleCondition::validateMultiple($modelsRuleCondition) && $isValid;
-					if ($isValid) {
-						$model->save(false);
-						foreach ($modelsRuleCondition as $modelRuleCondition) {
-							if('- None - ' != $modelRuleCondition->name and '- None - ' != $modelRuleCondition->value){
-								$modelRuleCondition->rule_id = $model->id;
-								$modelRuleCondition->save(false);
-							}
-						}
-					}
-				}else {
-					return $this->render('create', [
-							'model' => $model,
-							'modelsRuleCondition' => $modelsRuleCondition,
-					]);
-				}
+        $model = new Setting();
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->name]);
+        } else {
+            return $this->render('create', [
+                'model' => $model,
+            ]);
+        }
     }
 
     /**
-     * Updates an existing Rule model.
+     * Updates an existing Setting model.
      * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
+     * @param string $id
      * @return mixed
      */
     public function actionUpdate($id)
@@ -132,7 +104,7 @@ class RuleController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['view', 'id' => $model->name]);
         } else {
             return $this->render('update', [
                 'model' => $model,
@@ -141,9 +113,9 @@ class RuleController extends Controller
     }
 
     /**
-     * Deletes an existing Rule model.
+     * Deletes an existing Setting model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
+     * @param string $id
      * @return mixed
      */
     public function actionDelete($id)
@@ -154,15 +126,15 @@ class RuleController extends Controller
     }
 
     /**
-     * Finds the Rule model based on its primary key value.
+     * Finds the Setting model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return Rule the loaded model
+     * @param string $id
+     * @return Setting the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Rule::findOne($id)) !== null) {
+        if (($model = Setting::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

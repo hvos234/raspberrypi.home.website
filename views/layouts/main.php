@@ -50,6 +50,7 @@ AppAsset::register($this);
 			$widget['items'][] = ['label' => Yii::t('app', 'Tasks'), 'url' => ['/task/index']];
 			$widget['items'][] = ['label' => Yii::t('app', 'CronJobs'), 'url' => ['/cronjob/index']];
 			$widget['items'][] = ['label' => Yii::t('app', 'Rules'), 'url' => ['/rule/index']];
+			$widget['items'][] = ['label' => Yii::t('app', 'Settings'), 'url' => ['/setting/index']];
 			$widget['items'][] = ['label' => Yii::t('app', 'Data'), 'url' => ['/data/index']];
 			$widget['items'][] = ['label' => 'Logout (' . Yii::$app->user->identity->username . ')',
 				'url' => ['/site/logout'],
