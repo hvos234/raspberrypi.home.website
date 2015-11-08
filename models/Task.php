@@ -106,13 +106,16 @@ class Task extends \yii\db\ActiveRecord
 			$cmd = 'sudo python /var/www/html/home/commands/Task.py ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
 			exec(escapeshellcmd($cmd), $output, $return_code);
 			
-			// if nothing good is returned
-			if(0 !== $return_code or empty($output)){
+			// if nothing is returned, or a error
+			$output = end($output);
+			if(empty($output) or 0 === strpos($output, 'error')){
 				// retry
 				exec(escapeshellcmd($cmd), $output, $return_code);
+				$output = end($output);
 			}
 			
-			return end($output);
+			
+			return $output;
 		}
 		
 		public function getTaskBetweenDate($between, $from_device_id = '', $to_device_id = '', $action_id = ''){
