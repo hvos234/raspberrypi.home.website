@@ -40,18 +40,24 @@ AppAsset::register($this);
 						//['label' => 'About', 'url' => ['/site/about']],
 						//['label' => 'Contact', 'url' => ['/site/contact']],							
 				],
+				'activateParents' => true, // Whether to activate parent menu items 
 		];
 
 		if(Yii::$app->user->isGuest){
 			$widget['items'][] = ['label' => 'Login', 'url' => ['/site/login']];
 		}else {
-			$widget['items'][] = ['label' => Yii::t('app', 'Devices'), 'url' => ['/device/index']];
-			$widget['items'][] = ['label' => Yii::t('app', 'Actions'), 'url' => ['/action/index']];
-			$widget['items'][] = ['label' => Yii::t('app', 'Tasks'), 'url' => ['/task/index']];
-			$widget['items'][] = ['label' => Yii::t('app', 'CronJobs'), 'url' => ['/cronjob/index']];
-			$widget['items'][] = ['label' => Yii::t('app', 'Rules'), 'url' => ['/rule/index']];
-			$widget['items'][] = ['label' => Yii::t('app', 'Settings'), 'url' => ['/setting/index']];
 			$widget['items'][] = ['label' => Yii::t('app', 'Data'), 'url' => ['/data/index']];
+			$widget['items'][] = ['label' => Yii::t('app', 'Settings'), 'url' => false,
+				'items' => [
+					['label' => Yii::t('app', 'Devices'), 'url' => ['/device/index']],
+					['label' => Yii::t('app', 'Actions'), 'url' => ['/action/index']],
+					['label' => Yii::t('app', 'Tasks'), 'url' => ['/task/index']],
+					['label' => Yii::t('app', 'Rules'), 'url' => ['/rule/index']],
+					['label' => Yii::t('app', 'Rules Conditions'), 'url' => ['/rule-condition/index']],
+					['label' => Yii::t('app', 'Rules Actions'), 'url' => ['/rule-action/index']],
+					['label' => Yii::t('app', 'CronJobs'), 'url' => ['/cronjob/index']],
+					['label' => Yii::t('app', 'Settings'), 'url' => ['/setting/index']],
+			]];
 			$widget['items'][] = ['label' => 'Logout (' . Yii::$app->user->identity->username . ')',
 				'url' => ['/site/logout'],
 				'linkOptions' => ['data-method' => 'post']];

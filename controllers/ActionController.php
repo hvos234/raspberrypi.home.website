@@ -20,6 +20,7 @@ use app\models\DeviceAction;
 // displays a grid of actions from the device
 use yii\data\ArrayDataProvider;
 
+use app\models\HelperData;
 /**
  * ActionController implements the CRUD actions for Action model.
  */
@@ -108,12 +109,18 @@ class ActionController extends Controller
     {
         $model = new Action();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+					$model->data_structure = HelperData::dataTrim($model->data_structure);
+					$model->data_structure = HelperData::dataImplodeReturn($model->data_structure);
+					$model->save(false);
+					
           return $this->redirect(['view', 'id' => $model->id]);
         } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+						$model->data_structure = HelperData::dataExplodeReturn($model->data_structure);
+
+						return $this->render('create', [
+								'model' => $model,
+						]);
         }
     }
 
@@ -127,10 +134,16 @@ class ActionController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            //return $this->redirect(['view', 'id' => $model->id]);
-            return $this->redirect(['index']);
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+					$model->data_structure = HelperData::dataTrim($model->data_structure);
+					$model->data_structure = HelperData::dataImplodeReturn($model->data_structure);
+					$model->save(false);
+					
+					//return $this->redirect(['view', 'id' => $model->id]);
+					return $this->redirect(['index']);
         } else {
+						$model->data_structure = HelperData::dataExplodeReturn($model->data_structure);
+						
 						// add device_ids to the model, that are joined to the action, it 
 						// set automaticly the default values of the device_ids
 						$model->device_ids = $model->getDeviceActions();

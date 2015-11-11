@@ -12,6 +12,7 @@ use yii\behaviors\TimestampBehavior;
 use yii\helpers\ArrayHelper;
 
 use app\models\RuleCondition;
+use app\models\RuleAction;
 
 /**
  * This is the model class for table "{{%rule}}".

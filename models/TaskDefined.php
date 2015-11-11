@@ -99,9 +99,22 @@ class TaskDefined extends \yii\db\ActiveRecord
 			
 			return true;
 		}
+		
+		
 
-		public function getTaskDefinedAll(){
+		public static function getAll(){
 			// get all the task defined
 			return TaskDefined::find()->asArray()->all();
 		}	
+		
+		public static function getAllEncoded(){
+			$return = [];
+			
+			$tasksdefined = TaskDefined::getAll();
+			foreach($tasksdefined as $taskdefined){
+				$return[sprintf('{"class":"TaskDefined","function":"execute","id":"%d"}', $taskdefined['id'])] = sprintf('(%d) %s', $taskdefined['id'], $taskdefined['name']);
+			}
+			
+			return $return;
+		}
 }

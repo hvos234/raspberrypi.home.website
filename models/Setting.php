@@ -80,4 +80,47 @@ class Setting extends \yii\db\ActiveRecord
 					],
 			 ];
 		}
+		
+		
+		
+		public function createOne($paramters){
+			$model = new Setting();
+			
+			foreach($paramters as $field => $value){
+				$model->{$field} = $value;
+			}
+			
+			return $model->save();
+		}
+		
+		public function changeOne($id, $parameters){
+			$model = Setting::findOne($id);
+			
+			foreach($paramters as $field => $value){
+				$model->{$field} = $value;
+			}
+			
+			return $model->save();
+		}
+
+
+		public static function getAll(){
+			// get all the task defined
+			return Setting::find()->asArray()->all();
+		}
+		
+		public static function getAllByIdAndName(){
+			return ArrayHelper::map(Setting::find()->asArray()->all(), 'name', 'description');
+		}
+		
+		public static function getAllEncoded(){
+			$return = [];
+			
+			$settings = Setting::getAll();
+			foreach($settings as $setting){
+				$return[sprintf('{"class":"Setting","function":"changeOne","id":"%s"}', $setting['name'])] = sprintf('(%s) %s', $setting['name'], substr($setting['description'], 0, 100));
+			}
+			
+			return $return;
+		}
 }

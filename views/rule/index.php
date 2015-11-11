@@ -7,6 +7,8 @@ use yii\grid\GridView;
 /* @var $searchModel app\models\RuleSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
+use app\models\HelperData;
+
 $this->title = Yii::t('app', 'Rules');
 $this->params['breadcrumbs'][] = $this->title;
 ?>

@@ -19,7 +19,7 @@ class RuleConditionSearch extends RuleCondition
     {
         return [
             [['id', 'rule_id', 'weight'], 'integer'],
-            [['name', 'condition', 'equation', 'value', 'created_at', 'updated_at'], 'safe'],
+            [['condition', 'equation', 'value', 'created_at', 'updated_at'], 'safe'],
         ];
     }
 
@@ -63,8 +63,7 @@ class RuleConditionSearch extends RuleCondition
             'updated_at' => $this->updated_at,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'condition', $this->condition])
+        $query->andFilterWhere(['like', 'condition', $this->condition])
             ->andFilterWhere(['like', 'equation', $this->equation])
             ->andFilterWhere(['like', 'value', $this->value]);
 

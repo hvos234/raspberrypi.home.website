@@ -13,6 +13,7 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 
 use app\models\RuleCondition;
+use app\models\RuleAction;
 
 /**
  * RuleController implements the CRUD actions for Rule model.
@@ -95,28 +96,38 @@ class RuleController extends Controller
 					$modelsRuleCondition[$i] = new RuleCondition();
 					// if it is not the first one, there must be always one condition
 					if(0 < $i){
-						$modelsRuleCondition[$i]->name = '- None -';
-						$modelsRuleCondition[$i]->value = '- None -';
+						$modelsRuleCondition[$i]->value = Yii::t('app', '- None -');
 						$modelsRuleCondition[$i]->weight = $i;
 					}
 				}
 				
-				if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post())){
-					$isValid = $model->validate();
-					$isValid = RuleCondition::validateMultiple($modelsRuleCondition) && $isValid;
-					if ($isValid) {
-						$model->save(false);
-						foreach ($modelsRuleCondition as $modelRuleCondition) {
-							if('- None - ' != $modelRuleCondition->name and '- None - ' != $modelRuleCondition->value){
-								$modelRuleCondition->rule_id = $model->id;
-								$modelRuleCondition->save(false);
-							}
+				// create 5 RuleAction models
+				$modelsRuleAction[] = new RuleAction();
+				for($i=0; $i <= 4; $i++){
+					$modelsRuleAction[$i] = new RuleAction();
+					// if it is not the first one, there must be always one condition
+					if(0 < $i){
+						$modelsRuleAction[$i]->value = Yii::t('app', '- None -');
+						$modelsRuleAction[$i]->weight = $i;
+					}
+				}
+				
+				if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post()) && RuleAction::loadMultiple($modelsRuleAction, Yii::$app->request->post()) &&
+					$model->validate() && RuleCondition::validateMultiple($modelsRuleCondition) && RuleAction::validateMultiple($modelsRuleAction)){
+					
+					$model->save(false);
+					foreach ($modelsRuleCondition as $modelRuleCondition) {
+						if(Yii::t('app', '- None -') != $modelRuleCondition->value){
+							$modelRuleCondition->rule_id = $model->id;
+							$modelRuleCondition->save(false);
 						}
 					}
+					
 				}else {
 					return $this->render('create', [
 							'model' => $model,
 							'modelsRuleCondition' => $modelsRuleCondition,
+							'modelsRuleAction' => $modelsRuleAction,
 					]);
 				}
     }

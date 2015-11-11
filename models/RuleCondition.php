@@ -9,6 +9,8 @@ use Yii;
 use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
 
+use app\models\Setting;
+
 /**
  * This is the model class for table "{{%rule_condition}}".
  *
@@ -69,13 +71,11 @@ class RuleCondition extends \yii\db\ActiveRecord
 	public $weights = [];
 	
 	public function init() {
-		// add all task defined as Task::execute to the conditions
-		$modelTaskDefined = new TaskDefined();
-		$tasksdefined = $modelTaskDefined->getTaskDefinedAll();
+		// add all task defined
+		$this->conditions = array_merge($this->conditions, TaskDefined::getAllEncoded());
 		
-		foreach($tasksdefined as $taskdefined){
-			$this->conditions[sprintf('{"class":"Task","function":"execute","parameter":["%d","%d","%d"]}', $taskdefined['from_device_id'], $taskdefined['to_device_id'], $taskdefined['action_id'])] = sprintf('(%d) %s', $taskdefined['id'], $taskdefined['name']);
-		}
+		// add all setting
+		$this->conditions = array_merge($this->conditions, Setting::getAllEncoded());
 		
 		// translate all conditions
 		foreach ($this->conditions as $json => $condition){
@@ -132,10 +132,9 @@ class RuleCondition extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'condition', 'equation', 'value', 'rule_id', 'weight'], 'required'],
+            [['condition', 'equation', 'value', 'rule_id', 'weight'], 'required'],
             [['rule_id', 'weight'], 'integer'],
             [['created_at', 'updated_at'], 'safe'],
-            [['name'], 'string', 'max' => 255],
             [['condition', 'value'], 'string', 'max' => 128],
             [['equation'], 'string', 'max' => 4]
         ];
@@ -148,7 +147,6 @@ class RuleCondition extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('app', 'Id'),
-            'name' => Yii::t('app', 'Name'),
             'condition' => Yii::t('app', 'Condition'),
             'equation' => Yii::t('app', 'Equation'),
             'value' => Yii::t('app', 'Value'),

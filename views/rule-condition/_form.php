@@ -15,8 +15,6 @@ use yii\widgets\ActiveForm;
 		<?php
 		foreach($models as $index => $model){
 		?>
-			<?= $form->field($model, "[$index]name")->textInput(['maxlength' => true])->label($model->name) ?>
-
 			<?= $form->field($model, "[$index]condition")->textInput(['maxlength' => true])->label($model->condition) ?>
 
 			<?= $form->field($model, "[$index]equation")->textInput(['maxlength' => true])->label($model->equation) ?>

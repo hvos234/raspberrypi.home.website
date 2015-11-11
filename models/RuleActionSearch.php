@@ -5,12 +5,12 @@ namespace app\models;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Condition;
+use app\models\RuleAction;
 
 /**
- * ConditionSearch represents the model behind the search form about `app\models\Condition`.
+ * RuleActionSearch represents the model behind the search form about `app\models\RuleAction`.
  */
-class ConditionSearch extends Condition
+class RuleActionSearch extends RuleAction
 {
     /**
      * @inheritdoc
@@ -18,8 +18,8 @@ class ConditionSearch extends Condition
     public function rules()
     {
         return [
-            [['id'], 'integer'],
-            [['name', 'condition', 'equation', 'value', 'created_at', 'updated_at'], 'safe'],
+            [['id', 'rule_id', 'weight'], 'integer'],
+            [['action', 'value', 'created_at', 'updated_at'], 'safe'],
         ];
     }
 
@@ -41,7 +41,7 @@ class ConditionSearch extends Condition
      */
     public function search($params)
     {
-        $query = Condition::find();
+        $query = RuleAction::find();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -57,13 +57,13 @@ class ConditionSearch extends Condition
 
         $query->andFilterWhere([
             'id' => $this->id,
+            'rule_id' => $this->rule_id,
+            'weight' => $this->weight,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'condition', $this->condition])
-            ->andFilterWhere(['like', 'equation', $this->equation])
+        $query->andFilterWhere(['like', 'action', $this->action])
             ->andFilterWhere(['like', 'value', $this->value]);
 
         return $dataProvider;

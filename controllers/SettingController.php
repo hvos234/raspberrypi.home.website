@@ -12,6 +12,8 @@ use yii\filters\VerbFilter;
 // AccessControl is used form controlling access in behaviors()
 use yii\filters\AccessControl;
 
+use app\models\HelperData;
+
 /**
  * SettingController implements the CRUD actions for Setting model.
  */
@@ -84,9 +86,15 @@ class SettingController extends Controller
     {
         $model = new Setting();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->name]);
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+					$model->data = HelperData::dataTrim($model->data);
+					$model->data = HelperData::dataImplodeReturn($model->data);
+					$model->save(false);
+					
+					return $this->redirect(['view', 'id' => $model->id]);
         } else {
+						$model->data = HelperData::dataExplodeReturn($model->data);
+					
             return $this->render('create', [
                 'model' => $model,
             ]);
@@ -103,9 +111,16 @@ class SettingController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->name]);
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+					$model->data = HelperData::dataTrim($model->data);
+					$model->data = HelperData::dataImplodeReturn($model->data);
+					$model->save(false);
+					
+					//return $this->redirect(['view', 'id' => $model->id]);
+					return $this->redirect(['index']);
         } else {
+						$model->data = HelperData::dataExplodeReturn($model->data);
+						
             return $this->render('update', [
                 'model' => $model,
             ]);
