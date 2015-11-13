@@ -6,13 +6,15 @@ use yii\widgets\ActiveForm;
 /* @var $this yii\web\View */
 /* @var $model app\models\Setting */
 /* @var $form yii\widgets\ActiveForm */
+
+echo($model->getPrimaryKey());
 ?>
 
 <div class="setting-form">
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'name')->textInput(['maxlength' => true, 'readonly' => !$model->isNewRecord]) ?>
 
     <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
 

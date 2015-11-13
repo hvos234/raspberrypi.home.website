@@ -19,7 +19,7 @@ use yii\behaviors\TimestampBehavior;
  * @property string $updated_at
  */
 class Setting extends \yii\db\ActiveRecord
-{
+{		
     /**
      * @inheritdoc
      */
@@ -37,7 +37,8 @@ class Setting extends \yii\db\ActiveRecord
             [['name', 'description', 'data'], 'required'],
             [['description', 'data'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
-            [['name'], 'string', 'max' => 255]
+            [['name'], 'string', 'max' => 255],
+						[['name'], 'unique']
         ];
     }
 
@@ -64,6 +65,15 @@ class Setting extends \yii\db\ActiveRecord
         return new SettingQuery(get_called_class());
     }
 		
+		public static function primaryKey()
+		{	
+			return ['name'];
+		}
+		
+		public static function index() {
+  return 'name';
+}
+		
 		/**
 		 * Auto add date time to created_at and updated_at
 		 */
@@ -81,7 +91,23 @@ class Setting extends \yii\db\ActiveRecord
 			 ];
 		}
 		
+		public static function encodeName($name){
+			$name = strtolower($name);
+			$name = str_replace(' ', '_', $name);
+			do {
+				$done = strpos($name, '__');
+				$name = str_replace('__', '_', $name);
+			} while ($done);
+			
+			return $name;
+		}
 		
+		public static function decodeName($name){
+			$name = ucfirst($name);
+			$name = str_replace('_', ' ', $name);
+			
+			return $name;
+		}
 		
 		public function createOne($paramters){
 			$model = new Setting();

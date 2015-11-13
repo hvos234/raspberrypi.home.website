@@ -87,12 +87,13 @@ class SettingController extends Controller
         $model = new Setting();
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-					$model->data = HelperData::dataTrim($model->data);
-					$model->data = HelperData::dataImplodeReturn($model->data);
+					$model->name = Setting::encodeName($model->name);
+					$model->data = HelperData::dataRemoveDoubleReturnsAndTrim($model->data);
 					$model->save(false);
 					
 					return $this->redirect(['view', 'id' => $model->id]);
         } else {
+						//$model->name = Setting::decodeName($model->name);
 						$model->data = HelperData::dataExplodeReturn($model->data);
 					
             return $this->render('create', [
@@ -112,13 +113,14 @@ class SettingController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-					$model->data = HelperData::dataTrim($model->data);
-					$model->data = HelperData::dataImplodeReturn($model->data);
+					$model->name = Setting::encodeName($model->name);
+					$model->data = HelperData::dataRemoveDoubleReturnsAndTrim($model->data);
 					$model->save(false);
 					
 					//return $this->redirect(['view', 'id' => $model->id]);
 					return $this->redirect(['index']);
         } else {
+						//$model->name = Setting::decodeName($model->name);
 						$model->data = HelperData::dataExplodeReturn($model->data);
 						
             return $this->render('update', [

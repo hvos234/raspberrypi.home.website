@@ -192,7 +192,7 @@ class Cronjob extends \yii\db\ActiveRecord
 		 */
 		public function cron(){
 			$model = new Cronjob();
-			$cronjobs = $model->getCronjobAll();
+			$cronjobs = $model->getAll();
 			
 			// define date, and floor to 5 minutes
 			$now = date('Y-m-d H:i:00', floor(time() / (5 * 60)) * (5 * 60));
@@ -232,7 +232,7 @@ class Cronjob extends \yii\db\ActiveRecord
 			}
 		}
 		
-		public function getCronjobAll(){
+		public function getAll(){
 			// get all the actions
 			return Cronjob::find()->asArray()->all();
 		}	
