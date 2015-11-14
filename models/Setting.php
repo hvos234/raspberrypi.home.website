@@ -70,10 +70,6 @@ class Setting extends \yii\db\ActiveRecord
 			return ['name'];
 		}
 		
-		public static function index() {
-  return 'name';
-}
-		
 		/**
 		 * Auto add date time to created_at and updated_at
 		 */

@@ -112,24 +112,46 @@ class RuleController extends Controller
 					}
 				}
 				
-				if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post()) && RuleAction::loadMultiple($modelsRuleAction, Yii::$app->request->post()) &&
-					$model->validate() && RuleCondition::validateMultiple($modelsRuleCondition) && RuleAction::validateMultiple($modelsRuleAction)){
-					
-					$model->save(false);
-					foreach ($modelsRuleCondition as $modelRuleCondition) {
-						if(Yii::t('app', '- None -') != $modelRuleCondition->value){
-							$modelRuleCondition->rule_id = $model->id;
-							$modelRuleCondition->save(false);
-						}
+				/*if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post()) && RuleAction::loadMultiple($modelsRuleAction, Yii::$app->request->post()) &&
+					$model->validate() && RuleCondition::validateMultiple($modelsRuleCondition) && RuleAction::validateMultiple($modelsRuleAction)){*/
+				if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post()) && RuleAction::loadMultiple($modelsRuleAction, Yii::$app->request->post())){
+
+					// set rule_id temporary on 0, for validation
+					foreach($modelsRuleCondition as $key => $modelRuleCondition){
+						$modelRuleCondition->rule_id = 0;
+						$modelsRuleCondition[$key] = $modelRuleCondition;
 					}
+					// set rule_id temporary on 0, for validation
+					foreach($modelsRuleAction as $key => $modelRuleAction){
+						$modelRuleAction->rule_id = 0;
+						$modelsRuleAction[$key] = $modelRuleAction;
+					}					
 					
-				}else {
-					return $this->render('create', [
-							'model' => $model,
-							'modelsRuleCondition' => $modelsRuleCondition,
-							'modelsRuleAction' => $modelsRuleAction,
-					]);
+					if($model->validate() && RuleCondition::validateMultiple($modelsRuleCondition) && RuleAction::validateMultiple($modelsRuleAction)){
+						$model->save(false);
+						// change the rule_id, and save
+						foreach($modelsRuleCondition as $modelRuleCondition){
+							if(Yii::t('app', '- None -') != $modelRuleCondition->value){
+								$modelRuleCondition->rule_id = $model->id;
+								$modelRuleCondition->save(false);
+							}
+						}
+						// change the rule_id, and save
+						foreach($modelsRuleAction as $modelRuleAction){
+							if(Yii::t('app', '- None -') != $modelRuleAction->value){
+								$modelRuleAction->rule_id = $model->id;
+								$modelRuleAction->save(false);
+							}
+						}
+
+						return $this->redirect(['view', 'id' => $model->id]);
+					}
 				}
+				return $this->render('create', [
+						'model' => $model,
+						'modelsRuleCondition' => $modelsRuleCondition,
+						'modelsRuleAction' => $modelsRuleAction,
+				]);
     }
 
     /**
@@ -141,6 +163,7 @@ class RuleController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+				RuleCondition::find();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);

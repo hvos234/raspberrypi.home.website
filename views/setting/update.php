@@ -11,6 +11,8 @@ $this->title = Yii::t('app', 'Update {modelClass}: ', [
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Settings'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->name]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Update');
+
+var_dump($model->getPrimaryKey());
 ?>
 <div class="setting-update">
 

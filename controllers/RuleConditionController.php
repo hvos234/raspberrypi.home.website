@@ -82,24 +82,9 @@ class RuleConditionController extends Controller
      */
     public function actionCreate()
     {
-        /*$model = new RuleCondition();
+        $model = new RuleCondition();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
-        }*/
-				
-				for($i = 0; $i <= 10; $i++){
-					$models[] = new RuleCondition();
-				}
-				
-				if (RuleCondition::loadMultiple($models, Yii::$app->request->post()) && RuleCondition::validateMultiple($models)) {
-            foreach ($models as $model) {
-                $model->save(false);
-            }
+				if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect('index');
         }else {
 	        return $this->render('create', ['models' => $models]);

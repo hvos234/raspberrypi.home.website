@@ -86,8 +86,10 @@ class SettingController extends Controller
     {
         $model = new Setting();
 
+				$model->name = Setting::encodeName($model->name);
+				
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-					$model->name = Setting::encodeName($model->name);
+					
 					$model->data = HelperData::dataRemoveDoubleReturnsAndTrim($model->data);
 					$model->save(false);
 					
@@ -111,9 +113,11 @@ class SettingController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
+				
+				$model->name = Setting::encodeName($model->name);
+				
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-					$model->name = Setting::encodeName($model->name);
+					//$model->name = Setting::encodeName($model->name);
 					$model->data = HelperData::dataRemoveDoubleReturnsAndTrim($model->data);
 					$model->save(false);
 					
@@ -150,11 +154,17 @@ class SettingController extends Controller
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
-    {
-        if (($model = Setting::findOne($id)) !== null) {
+    {			
+        //if (($model = Setting::findOne($id)) !== null) {
+        if (($model = Setting::findOne(['name' => $id])) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
     }
+		
+		public static function primaryKey()
+		{	
+			return ['name'];
+		}
 }

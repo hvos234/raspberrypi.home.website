@@ -55,12 +55,13 @@ class SettingSearch extends Setting
         }
 
         $query->andFilterWhere([
+						'name' => $this->name,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'description', $this->description])
+        //$query->andFilterWhere(['like', 'name', $this->name])
+        $query->andFilterWhere(['like', 'description', $this->description])
             ->andFilterWhere(['like', 'data', $this->data]);
 
         return $dataProvider;
