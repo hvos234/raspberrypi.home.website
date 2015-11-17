@@ -140,7 +140,9 @@ class Setting extends \yii\db\ActiveRecord
 			
 			$settings = Setting::getAll();
 			foreach($settings as $setting){
-				$return[sprintf('{"class":"Setting","function":"changeOne","id":"%s"}', $setting['name'])] = sprintf('(%s) %s', $setting['name'], substr($setting['description'], 0, 100));
+				$array = ['class' => 'Setting', 'function' => 'changeOne', 'id' => $setting['name']];
+				$return[HelperData::dataImplode($array)] = sprintf('(%s) %s', $setting['name'], substr($setting['description'], 0, 100));
+				//$return[sprintf('{"class":"Setting","function":"changeOne","id":"%s"}', $setting['name'])] = sprintf('(%s) %s', $setting['name'], substr($setting['description'], 0, 100));
 			}
 			
 			return $return;

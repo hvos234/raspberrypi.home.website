@@ -112,7 +112,9 @@ class TaskDefined extends \yii\db\ActiveRecord
 			
 			$tasksdefined = TaskDefined::getAll();
 			foreach($tasksdefined as $taskdefined){
-				$return[sprintf('{"class":"TaskDefined","function":"execute","id":"%d"}', $taskdefined['id'])] = sprintf('(%d) %s', $taskdefined['id'], $taskdefined['name']);
+				$array = ['class' => 'TaskDefined', 'function' => 'execute', 'id' => $taskdefined['id']];
+				$return[HelperData::dataImplode($array)] = sprintf('(%d) %s', $taskdefined['id'], $taskdefined['name']);
+				//$return[sprintf('{"class":"TaskDefined","function":"execute","id":"%d"}', $taskdefined['id'])] = sprintf('(%d) %s', $taskdefined['id'], $taskdefined['name']);
 			}
 			
 			return $return;

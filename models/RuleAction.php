@@ -25,38 +25,18 @@ use app\models\Setting;
 class RuleAction extends \yii\db\ActiveRecord
 {
 	public $actions = [];
+	public $values = [];
 	public $weights = [];
 	
 	public function init() {
-		// add all task defined
-		$this->actions = array_merge($this->actions, TaskDefined::getAllEncoded());
-		
-		// add all setting
-		$this->actions = array_merge($this->actions, Setting::getAllEncoded());
-		
-		// translate all actions
-		foreach ($this->actions as $json => $action){
-			$this->actions[$json] = Yii::t('app', $action);
-		}
-		
-		// add date, condition or task before value condition
-		foreach ($this->actions as $json => $action){
-			$array = json_decode($json, true);
-			
-			switch($array['class']){
-				case 'php':
-					switch($array['function']){
-						case 'date':
-							$this->actions[$json] = sprintf('date(\'%s\'), %s', $array['parameter'], $action);
-							break;
-					}
-					break;
+		// get all actions
+		$modelRule = new Rule();
+		$this->actions = $modelRule->functions;
 				
-				default:
-					$this->actions[$json] = sprintf('%s, %s', $array['class'], $action);
-			}
-		}
-				
+		// get all values
+		$this->values['value'] = Yii::t('app', 'Value');
+		$this->values = array_merge($this->values, $modelRule->functions);
+		
 		// create weights from 0 to 5
 		for($weight = 0; $weight <= 4; $weight++){
 			$this->weights[$weight] = $weight;

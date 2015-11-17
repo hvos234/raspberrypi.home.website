@@ -63,7 +63,14 @@ use yii\widgets\ActiveForm;
 				?>
 				<tr id="RuleAction<?= $index; ?>" class="RuleAction-row" style="display:<?= (Yii::t('app', '- None -') == $modelRuleAction['value'] ? 'none' : 'table-row') ?>;">
 					<td><?= $form->field($modelRuleAction, "[$index]action")->dropDownList($modelRuleAction->actions)->label(false) ?></td>
-					<td><?= $form->field($modelRuleAction, "[$index]value", ['inputOptions' => ['class' => 'form-control RuleAction-value']])->textInput(['maxlength' => true])->label(false) ?></td>
+					<td>
+						<table>
+							<tr>								
+								<td><?= $form->field($modelRuleAction, "[$index]values", ['inputOptions' => ['class' => 'form-control RuleAction-values', 'index' => $index]])->dropDownList($modelRuleAction->values)->label(false) ?></td>
+								<td><?= $form->field($modelRuleAction, "[$index]value", ['inputOptions' => ['class' => 'form-control RuleAction-value', 'index' => $index]])->textInput(['maxlength' => true, 'readonly' => array_key_exists($modelRuleAction['value'], $modelRuleAction->values)])->label(false) ?></td>
+							</tr>
+						</table>
+					</td>
 					<td><?= $form->field($modelRuleAction, "[$index]weight")->dropDownList($modelRuleAction->weights)->label(false) ?></td>
 				</tr>
 				<?php
@@ -218,6 +225,27 @@ $(document).ready(function(){
     }
     
     RuleActionShowHideButton();
+    
+    // change the value with the value of the values, if 
+    // changed
+    $('.RuleAction-values').each(function() {
+        $(this).on('change', function() {
+            var index = $(this).attr('index');
+            if('value' == $(this).val()){
+                $("input[name='RuleAction["+index+"][value]']").removeAttr('readonly');
+                $("input[name='RuleAction["+index+"][value]']").val('');
+            }else {
+                $("input[name='RuleAction["+index+"][value]']").attr('readonly', 'readonly');
+                $("input[name='RuleAction["+index+"][value]']").val($(this).val());
+            }
+        });
+    });
+    
+    // set the selected value from values
+    $('.RuleAction-values').each(function() {
+        var index = $(this).attr('index');
+        $(this).val($("input[name='RuleAction["+index+"][value]']").val());        
+    });
 });
 JS;
 

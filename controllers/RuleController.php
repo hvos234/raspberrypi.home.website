@@ -112,8 +112,6 @@ class RuleController extends Controller
 					}
 				}
 				
-				/*if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post()) && RuleAction::loadMultiple($modelsRuleAction, Yii::$app->request->post()) &&
-					$model->validate() && RuleCondition::validateMultiple($modelsRuleCondition) && RuleAction::validateMultiple($modelsRuleAction)){*/
 				if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post()) && RuleAction::loadMultiple($modelsRuleAction, Yii::$app->request->post())){
 
 					// set rule_id temporary on 0, for validation
@@ -163,15 +161,67 @@ class RuleController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-				RuleCondition::find();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+				/*
+				if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
                 'model' => $model,
             ]);
         }
+				*/
+				//echo('$id: ' . $id) . '<br/>' . PHP_EOL;
+				
+				$modelsRuleCondition = RuleCondition::findAll(['rule_id' => $id]);
+				//$modelsRuleCondition = RuleCondition::find()->where(['rule_id' => $id])->asArray()->all();
+				//echo('count: ' . count($modelsRuleCondition)) . '<br/>' . PHP_EOL;
+				for($i=count($modelsRuleCondition); $i <= 9; $i++){
+					//echo('$i: ' . $i) . '<br/>' . PHP_EOL;
+					$modelsRuleCondition[$i] = new RuleCondition();
+					$modelsRuleCondition[$i]->rule_id = $id;
+					$modelsRuleCondition[$i]->value = Yii::t('app', '- None -');
+					$modelsRuleCondition[$i]->weight = $i;
+				}
+				
+				$modelsRuleAction = RuleAction::findAll(['rule_id' => $id]);
+				//echo('count: ' . count($modelsRuleAction)) . '<br/>' . PHP_EOL;
+				for($i=count($modelsRuleAction); $i <= 4; $i++){
+					$modelsRuleAction[$i] = new RuleAction();
+					$modelsRuleAction[$i]->rule_id = $id;
+					$modelsRuleAction[$i]->value = Yii::t('app', '- None -');
+					$modelsRuleAction[$i]->weight = $i;
+				}
+				
+				//var_dump($modelsRuleCondition);
+				//var_dump($modelsRuleAction);
+				//exit();
+				
+				if($model->load(Yii::$app->request->post()) && RuleCondition::loadMultiple($modelsRuleCondition, Yii::$app->request->post()) && RuleAction::loadMultiple($modelsRuleAction, Yii::$app->request->post())){
+					if($model->validate() && RuleCondition::validateMultiple($modelsRuleCondition) && RuleAction::validateMultiple($modelsRuleAction)){
+						$model->save(false);
+						// change the rule_id, and save
+						foreach($modelsRuleCondition as $modelRuleCondition){
+							if(Yii::t('app', '- None -') != $modelRuleCondition->value){
+								$modelRuleCondition->rule_id = $model->id;
+								$modelRuleCondition->save(false);
+							}
+						}
+						// change the rule_id, and save
+						foreach($modelsRuleAction as $modelRuleAction){
+							if(Yii::t('app', '- None -') != $modelRuleAction->value){
+								$modelRuleAction->rule_id = $model->id;
+								$modelRuleAction->save(false);
+							}
+						}
+
+						return $this->redirect(['index']);
+					}
+				}
+				return $this->render('update', [
+					'model' => $model,
+					'modelsRuleCondition' => $modelsRuleCondition,
+					'modelsRuleAction' => $modelsRuleAction,
+				]);
     }
 
     /**

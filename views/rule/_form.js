@@ -132,4 +132,25 @@ $(document).ready(function(){
     }
     
     RuleActionShowHideButton();
+    
+    // change the value with the value of the values, if 
+    // changed
+    $('.RuleAction-values').each(function() {
+        $(this).on('change', function() {
+            var index = $(this).attr('index');
+            if('value' == $(this).val()){
+                $("input[name='RuleAction["+index+"][value]']").removeAttr('readonly');
+                $("input[name='RuleAction["+index+"][value]']").val('');
+            }else {
+                $("input[name='RuleAction["+index+"][value]']").attr('readonly', 'readonly');
+                $("input[name='RuleAction["+index+"][value]']").val($(this).val());
+            }
+        });
+    });
+    
+    // set the selected value from values
+    $('.RuleAction-values').each(function() {
+        var index = $(this).attr('index');
+        $(this).val($("input[name='RuleAction["+index+"][value]']").val());        
+    });
 });
