@@ -26,6 +26,7 @@ use yii\widgets\ActiveForm;
 		<table>
 			<tr>
 				<th><?= Yii::t('app', 'Condition'); ?></th>
+				<th>&nbsp;</th>
 				<th><?= Yii::t('app', 'Equation'); ?></th>
 				<th><?= Yii::t('app', 'Value'); ?></th>
 				<th><?= Yii::t('app', 'Weight'); ?></th>
@@ -35,7 +36,8 @@ use yii\widgets\ActiveForm;
 				$modelRuleCondition['weight'] = (empty($modelRuleCondition['weight']) ? $index : $modelRuleCondition['weight']);
 				?>
 				<tr id="RuleCondition_<?= $index; ?>" class="RuleCondition-row" style="display:<?= (Yii::t('app', '- None -') == $modelRuleCondition['value'] ? 'none' : 'table-row') ?>;">
-					<td><?= $form->field($modelRuleCondition, "[$index]condition")->dropDownList($modelRuleCondition->conditions)->label(false) ?></td>
+					<td><?= $form->field($modelRuleCondition, "[$index]condition", ['inputOptions' => ['class' => 'form-control RuleCondition-condition', 'index' => $index]])->dropDownList($modelRuleCondition->conditions)->label(false) ?></td>
+					<td><?= $form->field($modelRuleCondition, "[$index]condition_value", ['inputOptions' => ['class' => 'form-control RuleCondition-condition_value', 'index' => $index]])->dropDownList($modelRuleCondition->conditions_values)->label(false) ?></td>
 					<td><?= $form->field($modelRuleCondition, "[$index]equation")->dropDownList($modelRuleCondition->equations)->label(false) ?></td>
 					<td><?= $form->field($modelRuleCondition, "[$index]value", ['inputOptions' => ['class' => 'form-control RuleCondition-value']])->textInput(['maxlength' => true])->label(false) ?></td>
 					<td><?= $form->field($modelRuleCondition, "[$index]weight")->dropDownList($modelRuleCondition->weights)->label(false) ?></td>
@@ -54,23 +56,37 @@ use yii\widgets\ActiveForm;
 		<table>
 			<tr>
 				<th><?= Yii::t('app', 'Action'); ?></th>
+				<th>&nbsp;</th>
 				<th><?= Yii::t('app', 'Value'); ?></th>
+				<th>&nbsp;</th>
 				<th><?= Yii::t('app', 'Weight'); ?></th>
 			</tr>
 			<?php
 			foreach($modelsRuleAction as $index => $modelRuleAction){
 				$modelRuleAction['weight'] = (empty($modelRuleAction['weight']) ? $index : $modelRuleAction['weight']);
 				?>
-				<tr id="RuleAction<?= $index; ?>" class="RuleAction-row" style="display:<?= (Yii::t('app', '- None -') == $modelRuleAction['value'] ? 'none' : 'table-row') ?>;">
-					<td><?= $form->field($modelRuleAction, "[$index]action")->dropDownList($modelRuleAction->actions)->label(false) ?></td>
+				<tr id="RuleAction<?= $index; ?>" class="RuleAction-row" style="display:<?= (Yii::t('app', '- None -') == $modelRuleAction['value_value'] ? 'none' : 'table-row') ?>;">
+					<td><?= $form->field($modelRuleAction, "[$index]action", ['inputOptions' => ['class' => 'form-control RuleAction-action', 'index' => $index]])->dropDownList($modelRuleAction->actions)->label(false) ?></td>
+					<td><?= $form->field($modelRuleAction, "[$index]action_value", ['inputOptions' => ['class' => 'form-control RuleAction-action_value', 'index' => $index]])->dropDownList($modelRuleAction->actions_values)->label(false) ?></td>
+					
+					<td><?= $form->field($modelRuleAction, "[$index]value", ['inputOptions' => ['class' => 'form-control RuleAction-value', 'index' => $index]])->dropDownList($modelRuleAction->values)->label(false) ?></td>
 					<td>
+						<table>
+							<tr>								
+								<td><?= $form->field($modelRuleAction, "[$index]values_values", ['inputOptions' => ['class' => 'form-control RuleAction-values_values', 'index' => $index]])->dropDownList($modelRuleAction->values_values)->label(false) ?></td>
+								<td><?= $form->field($modelRuleAction, "[$index]value_value", ['inputOptions' => ['class' => 'form-control RuleAction-value_value', 'index' => $index]])->textInput(['maxlength' => true, 'readonly' => array_key_exists($modelRuleAction['value_value'], $modelRuleAction->values)])->label(false) ?></td>
+							</tr>
+						</table>
+					</td>
+					
+					<?php /*<td>
 						<table>
 							<tr>								
 								<td><?= $form->field($modelRuleAction, "[$index]values", ['inputOptions' => ['class' => 'form-control RuleAction-values', 'index' => $index]])->dropDownList($modelRuleAction->values)->label(false) ?></td>
 								<td><?= $form->field($modelRuleAction, "[$index]value", ['inputOptions' => ['class' => 'form-control RuleAction-value', 'index' => $index]])->textInput(['maxlength' => true, 'readonly' => array_key_exists($modelRuleAction['value'], $modelRuleAction->values)])->label(false) ?></td>
 							</tr>
 						</table>
-					</td>
+					</td>*/ ?>
 					<td><?= $form->field($modelRuleAction, "[$index]weight")->dropDownList($modelRuleAction->weights)->label(false) ?></td>
 				</tr>
 				<?php
@@ -90,163 +106,21 @@ use yii\widgets\ActiveForm;
     <?php ActiveForm::end(); ?>
 
 </div>
-
 <?php
 // this is the script that hide or show the action, when the 
 // to device is changed or select.
 $none = Yii::t('app', '- None -');
 
+// this way i do not have to copy the script from
+// the file below here
+ob_start();		
+include('_form.js');
+$script_contents = ob_get_contents();
+ob_end_clean();
+
 $script = <<< JS
-$(document).ready(function(){
-    // on click Add Condition button (RuleCondition_add)
-    // loop trough all the table rows and set by the
-    // first one the display on table-row and exit.
-    // Oh yeah and set the name and the value fields
-    $('#RuleCondition_add').on('click', function() {
-        $('.RuleCondition-row').each(function( index ) {
-            if('none' == $(this).css('display')){
-                $(this).find('.RuleCondition-value').val('');
-                $(this).css('display', 'table-row');
-                RuleConditionShowHideButton();
-                return false;
-            }
-        });
-        RuleConditionShowHideButton();
-        return false;
-    });
-    
-    // on click Remove Condition button (RuleCondition_remove)
-    // loop trough all the table rows and set by the
-    // last one the display on none and exit.
-    // Oh yeah and set the name and the value fields
-    $('#RuleCondition_remove').on('click', function() {
-        // first in reverse order
-        $($('.RuleCondition-row').get().reverse()).each(function(index) { 
-            if('table-row' == $(this).css('display')){
-                $(this).find('.RuleCondition-value').val('{$none}');
-                $(this).css('display', 'none');
-                RuleConditionShowHideButton();
-                return false;
-            }
-        });
-        RuleConditionShowHideButton();
-        return false;
-    });
-    
-    // loop trough all the RuleCondition-row, and
-    // count how many are visible (display table-row)
-    // and show or hide the Add Condition button (RuleCondition_add) 
-    // or the Remove Condition button (RuleCondition_remove)
-    function RuleConditionShowHideButton(){
-        var count = 0;
-        var visible = 0;
-        $('.RuleCondition-row').each(function( index ) {
-            count++;
-            if('table-row' == $(this).css('display')){
-                visible++;
-            }
-        });
-        if(1 >= visible){
-            $('#RuleCondition_add').css('display', 'inline-block');
-            $('#RuleCondition_remove').css('display', 'none');
-        }
-        if(1 < visible){
-            $('#RuleCondition_add').css('display', 'inline-block');
-            $('#RuleCondition_remove').css('display', 'inline-block');
-        }
-        if(count <= visible){
-            $('#RuleCondition_add').css('display', 'none');
-            $('#RuleCondition_remove').css('display', 'inline-block');
-        }
-    }
-    
-    RuleConditionShowHideButton();
-    
-    // on click Add Condition button (RuleCondition_add)
-    // loop trough all the table rows and set by the
-    // first one the display on table-row and exit.
-    // Oh yeah and set the name and the value fields
-    $('#RuleAction_add').on('click', function() {
-        $('.RuleAction-row').each(function( index ) {
-            if('none' == $(this).css('display')){
-                $(this).find('.RuleAction-value').val('');
-                $(this).css('display', 'table-row');
-                RuleActionShowHideButton();
-                return false;
-            }
-        });
-        RuleActionShowHideButton();
-        return false;
-    });
-    
-    // on click Remove Condition button (RuleCondition_remove)
-    // loop trough all the table rows and set by the
-    // last one the display on none and exit.
-    // Oh yeah and set the name and the value fields
-    $('#RuleAction_remove').on('click', function() {
-        // first in reverse order
-        $($('.RuleAction-row').get().reverse()).each(function(index) { 
-            if('table-row' == $(this).css('display')){
-                $(this).find('.RuleAction-value').val('{$none}');
-                $(this).css('display', 'none');
-                RuleActionShowHideButton();
-                return false;
-            }
-        });
-        RuleActionShowHideButton();
-        return false;
-    });
-    
-    // loop trough all the RuleCondition-row, and
-    // count how many are visible (display table-row)
-    // and show or hide the Add Condition button (RuleCondition_add) 
-    // or the Remove Condition button (RuleCondition_remove)
-    function RuleActionShowHideButton(){
-        var count = 0;
-        var visible = 0;
-        $('.RuleAction-row').each(function( index ) {
-            count++;
-            if('table-row' == $(this).css('display')){
-                visible++;
-            }
-        });
-        if(1 >= visible){
-            $('#RuleAction_add').css('display', 'inline-block');
-            $('#RuleAction_remove').css('display', 'none');
-        }
-        if(1 < visible){
-            $('#RuleAction_add').css('display', 'inline-block');
-            $('#RuleAction_remove').css('display', 'inline-block');
-        }
-        if(count <= visible){
-            $('#RuleAction_add').css('display', 'none');
-            $('#RuleAction_remove').css('display', 'inline-block');
-        }
-    }
-    
-    RuleActionShowHideButton();
-    
-    // change the value with the value of the values, if 
-    // changed
-    $('.RuleAction-values').each(function() {
-        $(this).on('change', function() {
-            var index = $(this).attr('index');
-            if('value' == $(this).val()){
-                $("input[name='RuleAction["+index+"][value]']").removeAttr('readonly');
-                $("input[name='RuleAction["+index+"][value]']").val('');
-            }else {
-                $("input[name='RuleAction["+index+"][value]']").attr('readonly', 'readonly');
-                $("input[name='RuleAction["+index+"][value]']").val($(this).val());
-            }
-        });
-    });
-    
-    // set the selected value from values
-    $('.RuleAction-values').each(function() {
-        var index = $(this).attr('index');
-        $(this).val($("input[name='RuleAction["+index+"][value]']").val());        
-    });
-});
+var tNone = '{$none}';
+{$script_contents}
 JS;
 
 // jQuery will be loaded as last, therefor you need to use

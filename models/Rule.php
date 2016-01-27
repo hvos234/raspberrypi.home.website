@@ -25,7 +25,7 @@ use app\models\RuleAction;
  */
 class Rule extends \yii\db\ActiveRecord
 {
-	public $functions = [
+	/*public $functions = [
 		// date
 		'class:php,function:date,parameter:d' => 'Day of the month, 2 digits with leading zeros (01 to 31)',
 		//'date(\'j\')' => 'Day of the month without leading zeros (1 to 31)',
@@ -57,38 +57,66 @@ class Rule extends \yii\db\ActiveRecord
 		'class:Condition,function:amiathome,parameter:\'\'' => 'Am i at Home',
 		///'Task::execute($from_device_id,$to_device_id,$action_id)' => 'Task, {id} {name}',
 		
+	];*/
+	
+	public $conditions_actions = [
+		'date' => 'Date',
+		//'task' => 'Task',
+		'taskdefined' => 'TaskDefined',
+		'setting' => 'Setting',
+	];
+	
+	
+	public $values = [
+		'date' => [
+			// date
+			'd' => 'Day of the month, 2 digits with leading zeros (01 to 31)',
+			//'date(\'j\')' => 'Day of the month without leading zeros (1 to 31)',
+			'D' => 'A textual representation of a day, three letters (Mon through Sun)',
+			'l' => 'A full textual representation of the day of the week (Sunday through Saturday)',
+			'N' => 'ISO-8601 numeric representation of the day of the week (1 (for Monday) through 7 (for Sunday))',
+			//'date(\'w\')' => 'Numeric representation of the day of the week (0 (for Sunday) through 6 (for Saturday))',
+			//'date(\'z\')' => 'The day of the year (starting from 0 through 365)',
+			'W' => 'ISO-8601 week number of year, weeks starting on Monday (42 is the 42nd week in the year)',
+			'm' => 'Numeric representation of a month, with leading zeros (01 through 12)',
+			//'date(\'n\')' => 'Numeric representation of a month, without leading zeros (1 through 12)',
+			'F' => 'A full textual representation of a month (January through December)',
+			'M' => 'A short textual representation of a month, three letters (Jan through Dec)',
+			///'date(\'t\')' => 'Number of days in the given month (28 through 31)',
+			'Y' => 'A full numeric representation of a year, 4 digits (1999 or 2003)',
+			//'date(\'y\')' => 'A two digit representation of a year (99 or 03)',
+			///'date(\'L\')' => 'Whether it's a leap year (1 if it is a leap year, 0 otherwise)',
+			///'date(\'o\')' => 'ISO-8601 year number. This has the same value as Y, except that if the ISO week number (W) belongs to the previous or next year, that year is used instead (1999 or 2003)',
+			///'date(\'a\')' => 'Lowercase Ante meridiem and Post meridiem (am or pm)',
+			///'date(\'A\')' => 'Uppercase Ante meridiem and Post meridiem (AM or PM)',
+			///'date(\'B\')' => 'Swatch Internet time (000 through 999)',
+			//'date(\'g\')' => '12-hour format of an hour without leading zeros (1 through 12)',
+			//'date(\'G\')' => '24-hour format of an hour without leading zeros (0 through 23)',
+			//'date(\'h\')' => '12-hour format of an hour with leading zeros (01 through 12)',
+			'H' => '24-hour format of an hour with leading zeros (00 through 23)',
+			'i' => 'Minutes with leading zeros (00 to 59)',
+			's' => 'Seconds, with leading zeros (00 through 59)',
+			///'date(\'u\')' => 'Microseconds (654321)',
+			'class:Condition,function:amiathome,parameter:\'\'' => 'Am i at Home',
+			///'Task::execute($from_device_id,$to_device_id,$action_id)' => 'Task, {id} {name}',
+		]
 	];
 	
 	public $weights = [];
 
 	public function init() {
+		// add all task
+		//$this->values['task'] = Task::getAllIdId();
+		
 		// add all task defined
-		$this->functions = array_merge($this->functions, TaskDefined::getAllEncoded());
+		$this->values['taskdefined'] = TaskDefined::getAllIdName();
 		
 		// add all setting
-		$this->functions = array_merge($this->functions, Setting::getAllEncoded());
+		$this->values['setting'] = Setting::getAllIdName();
 		
 		// translate all
-		foreach ($this->functions as $encoded => $function){
-			$this->functions[$encoded] = Yii::t('app', $function);
-		}
-		
-		// add date, condition or task before value condition
-		foreach ($this->functions as $encoded => $function){
-			$array = HelperData::dataExplode($encoded);
-			
-			switch($array['class']){
-				case 'php':
-					switch($array['function']){
-						case 'date':
-							$this->functions[$encoded] = sprintf('date(\'%s\'), %s', $array['parameter'], $function);
-							break;
-					}
-					break;
-				
-				default:
-					$this->functions[$encoded] = sprintf('%s, %s', $array['class'], $function);
-			}
+		foreach ($this->conditions_actions as $condition_action => $name){
+			$this->conditions_actions[$condition_action] = Yii::t('app', $name);
 		}
 		
 		// create weights
@@ -99,6 +127,11 @@ class Rule extends \yii\db\ActiveRecord
 		}
 		
 		$this->weights[$key] = $key;
+		
+		// put all keys from date before description
+		foreach ($this->values['date'] as $key => $description){
+			$this->values['date'][$key] = '(' . $key . ') ' . $description;
+		}
 		
 		parent::init();
 	}

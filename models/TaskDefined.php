@@ -9,6 +9,9 @@ use Yii;
 use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
 
+// The ArrayHelper, is used for building a map (key-value pairs).
+use yii\helpers\ArrayHelper;
+
 /**
  * This is the model class for table "{{%task_defined}}".
  *
@@ -96,7 +99,6 @@ class TaskDefined extends \yii\db\ActiveRecord
 				print_r($modelTask->errors);
 				return false;
 			}
-			
 			return true;
 		}
 		
@@ -105,7 +107,11 @@ class TaskDefined extends \yii\db\ActiveRecord
 		public static function getAll(){
 			// get all the task defined
 			return TaskDefined::find()->asArray()->all();
-		}	
+		}
+		
+		public static function getAllIdName(){
+			return ArrayHelper::map(TaskDefined::find()->asArray()->all(), 'id', 'name');
+		}
 		
 		public static function getAllEncoded(){
 			$return = [];

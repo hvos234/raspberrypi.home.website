@@ -19,7 +19,7 @@ class RuleActionSearch extends RuleAction
     {
         return [
             [['id', 'rule_id', 'weight'], 'integer'],
-            [['action', 'value', 'created_at', 'updated_at'], 'safe'],
+            [['action', 'action_value', 'value', 'value_value', 'created_at', 'updated_at'], 'safe'],
         ];
     }
 
@@ -57,6 +57,8 @@ class RuleActionSearch extends RuleAction
 
         $query->andFilterWhere([
             'id' => $this->id,
+            'action_value' => $this->action_value,
+            'value_value' => $this->value_value,
             'rule_id' => $this->rule_id,
             'weight' => $this->weight,
             'created_at' => $this->created_at,

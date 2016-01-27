@@ -25,17 +25,28 @@ use app\models\Setting;
 class RuleAction extends \yii\db\ActiveRecord
 {
 	public $actions = [];
+	public $actions_values = [];
 	public $values = [];
+	public $values_values = [];
 	public $weights = [];
 	
 	public function init() {
 		// get all actions
 		$modelRule = new Rule();
-		$this->actions = $modelRule->functions;
+		$this->actions = $modelRule->conditions_actions;
+		$this->actions_values = $modelRule->values;
+		
+		// do not use date
+		unset($this->actions['date']);
+		unset($this->actions_values['date']);
 				
 		// get all values
 		$this->values['value'] = Yii::t('app', 'Value');
-		$this->values = array_merge($this->values, $modelRule->functions);
+		$this->values['on'] = Yii::t('app', 'On');
+		$this->values['off'] = Yii::t('app', 'Off');
+		$this->values = array_merge($this->values, $modelRule->conditions_actions);
+		
+		$this->values_values = $modelRule->values;
 		
 		// create weights from 0 to 5
 		for($weight = 0; $weight <= 4; $weight++){
@@ -59,10 +70,11 @@ class RuleAction extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['action', 'value', 'rule_id', 'weight'], 'required'],
+            [['action', 'action_value', 'value', 'value_value', 'rule_id', 'weight'], 'required'],
             [['rule_id', 'weight'], 'integer'],
             [['created_at', 'updated_at'], 'safe'],
-            [['action', 'value'], 'string', 'max' => 128]
+            [['action', 'value'], 'string', 'max' => 128],
+            [['action_value', 'value_value'], 'string', 'max' => 255]
         ];
     }
 
@@ -74,7 +86,9 @@ class RuleAction extends \yii\db\ActiveRecord
         return [
             'id' => Yii::t('app', 'Id'),
             'action' => Yii::t('app', 'Action'),
+            'action_value' => Yii::t('app', 'Action Value'),
             'value' => Yii::t('app', 'Value'),
+            'value_value' => Yii::t('app', 'Value Value'),
             'rule_id' => Yii::t('app', 'Id Rule'),
             'weight' => Yii::t('app', 'Weight'),
             'created_at' => Yii::t('app', 'Created At'),

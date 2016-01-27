@@ -27,6 +27,8 @@ use app\models\Setting;
 class RuleCondition extends \yii\db\ActiveRecord
 {
 	public $conditions = [];
+	public $conditions_values = [];
+	
 	public $equations = [
 		'==' => 'Equal',
 		'!=' => 'Not equal',
@@ -40,7 +42,11 @@ class RuleCondition extends \yii\db\ActiveRecord
 	public function init() {
 		// get all conditions
 		$modelRule = new Rule();
-		$this->conditions = $modelRule->functions;
+		$this->conditions = $modelRule->conditions_actions;
+		
+		// get all conditions values
+		$this->conditions_values = $modelRule->values;
+		
 		
 		// translate all equations
 		foreach ($this->equations as $key => $equation){
@@ -74,10 +80,11 @@ class RuleCondition extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['condition', 'equation', 'value', 'rule_id', 'weight'], 'required'],
+            [['condition', 'condition_value', 'equation', 'value', 'rule_id', 'weight'], 'required'],
             [['rule_id', 'weight'], 'integer'],
             [['created_at', 'updated_at'], 'safe'],
             [['condition', 'value'], 'string', 'max' => 128],
+            [['condition_value'], 'string', 'max' => 255],
             [['equation'], 'string', 'max' => 4]
         ];
     }
@@ -90,6 +97,7 @@ class RuleCondition extends \yii\db\ActiveRecord
         return [
             'id' => Yii::t('app', 'Id'),
             'condition' => Yii::t('app', 'Condition'),
+            'condition_value' => Yii::t('app', 'Condition Value'),
             'equation' => Yii::t('app', 'Equation'),
             'value' => Yii::t('app', 'Value'),
             'rule_id' => Yii::t('app', 'Id Rule'),

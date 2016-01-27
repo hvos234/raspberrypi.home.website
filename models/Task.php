@@ -9,6 +9,9 @@ use Yii;
 use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
 
+// The ArrayHelper, is used for building a map (key-value pairs).
+use yii\helpers\ArrayHelper;
+
 /**
  * This is the model class for table "{{%task}}".
  *
@@ -103,17 +106,29 @@ class Task extends \yii\db\ActiveRecord
 		 */
 		public static function execute($from_device_id, $to_device_id, $action_id){
 			// sudo visudo and add exception www-data ALL=(ALL) NOPASSWD: ALL, and use sudo
-			$cmd = 'sudo python /var/www/html/home/commands/Task.py ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
-			exec(escapeshellcmd($cmd), $output, $return_code);
+			$command = 'sudo python /var/www/html/home/commands/Task.py ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
+			exec(escapeshellcmd($command), $output, $return_var);
 			
 			// if nothing is returned, or a error
 			$output = end($output);
 			if(empty($output) or 0 === strpos($output, 'error')){
 				// retry
-				exec(escapeshellcmd($cmd), $output, $return_code);
+				exec(escapeshellcmd($command), $output, $return_var);
+				
 				$output = end($output);
+				if(empty($output) or 0 === strpos($output, 'error')){
+					
+				}else {
+					if(0 != $return_var){
+						return 'error:failed to execute command';
+					}
+				}
+				
+			}else {
+				if(0 != $return_var){
+					return 'error:failed to execute command';
+				}
 			}
-			
 			
 			return $output;
 		}
@@ -139,5 +154,9 @@ class Task extends \yii\db\ActiveRecord
 		
 		public function data_encode($data){
 			return json_encode($data, true);
+		}
+		
+		public static function getAllIdId(){
+			return ArrayHelper::map(Task::find()->asArray()->all(), 'id', 'id');
 		}
 }

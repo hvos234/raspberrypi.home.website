@@ -85,23 +85,24 @@ class SettingController extends Controller
     public function actionCreate()
     {
         $model = new Setting();
-
-				$model->name = Setting::encodeName($model->name);
 				
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+        if ($model->load(Yii::$app->request->post())){
+					$model->name = Setting::encodeName($model->name);
 					
-					$model->data = HelperData::dataRemoveDoubleReturnsAndTrim($model->data);
-					$model->save(false);
-					
-					return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-						//$model->name = Setting::decodeName($model->name);
-						$model->data = HelperData::dataExplodeReturn($model->data);
-					
-            return $this->render('create', [
-                'model' => $model,
-            ]);
-        }
+					if($model->validate()){
+						$model->data = HelperData::dataRemoveDoubleReturnsAndTrim($model->data);
+						$model->save(false);
+
+						return $this->redirect(['view', 'id' => $model->id]);
+					}
+				}
+				
+				$model->data = HelperData::dataExplodeReturn($model->data);
+
+				return $this->render('create', [
+						'model' => $model,
+				]);
+        
     }
 
     /**
@@ -116,21 +117,24 @@ class SettingController extends Controller
 				
 				$model->name = Setting::encodeName($model->name);
 				
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-					//$model->name = Setting::encodeName($model->name);
-					$model->data = HelperData::dataRemoveDoubleReturnsAndTrim($model->data);
-					$model->save(false);
+        if ($model->load(Yii::$app->request->post())){
+					$model->name = Setting::encodeName($model->name);
 					
-					//return $this->redirect(['view', 'id' => $model->id]);
-					return $this->redirect(['index']);
-        } else {
-						//$model->name = Setting::decodeName($model->name);
-						$model->data = HelperData::dataExplodeReturn($model->data);
-						
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+					if($model->validate()){
+					
+						$model->data = HelperData::dataRemoveDoubleReturnsAndTrim($model->data);
+						$model->save(false);
+
+						//return $this->redirect(['view', 'id' => $model->id]);
+						return $this->redirect(['index']);
+					}
         }
+				
+				$model->data = HelperData::dataExplodeReturn($model->data);
+
+				return $this->render('update', [
+						'model' => $model,
+				]);
     }
 
     /**
@@ -155,16 +159,15 @@ class SettingController extends Controller
      */
     protected function findModel($id)
     {			
-        //if (($model = Setting::findOne($id)) !== null) {
-        if (($model = Setting::findOne(['name' => $id])) !== null) {
+        if (($model = Setting::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
     }
 		
-		public static function primaryKey()
+		/*public static function primaryKey()
 		{	
 			return ['name'];
-		}
+		}*/
 }

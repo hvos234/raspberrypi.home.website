@@ -9,6 +9,9 @@ use Yii;
 use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
 
+// The ArrayHelper, is used for building a map (key-value pairs).
+use yii\helpers\ArrayHelper;
+
 /**
  * This is the model class for table "{{%setting}}".
  *
@@ -48,6 +51,7 @@ class Setting extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
+            'id' => Yii::t('app', 'Id'),
             'name' => Yii::t('app', 'Name'),
             'description' => Yii::t('app', 'Description'),
             'data' => Yii::t('app', 'Data'),
@@ -65,10 +69,10 @@ class Setting extends \yii\db\ActiveRecord
         return new SettingQuery(get_called_class());
     }
 		
-		public static function primaryKey()
+		/*public static function primaryKey()
 		{	
 			return ['name'];
-		}
+		}*/
 		
 		/**
 		 * Auto add date time to created_at and updated_at
@@ -129,6 +133,10 @@ class Setting extends \yii\db\ActiveRecord
 		public static function getAll(){
 			// get all the task defined
 			return Setting::find()->asArray()->all();
+		}
+		
+		public static function getAllIdName(){
+			return ArrayHelper::map(Setting::find()->asArray()->all(), 'id', 'name');
 		}
 		
 		public static function getAllByIdAndName(){

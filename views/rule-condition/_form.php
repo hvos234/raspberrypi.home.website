@@ -12,25 +12,20 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-		<?php
-		foreach($models as $index => $model){
-		?>
-			<?= $form->field($model, "[$index]condition")->textInput(['maxlength' => true])->label($model->condition) ?>
+    <?= $form->field($model, 'condition')->textInput(['maxlength' => true]) ?>
 
-			<?= $form->field($model, "[$index]equation")->textInput(['maxlength' => true])->label($model->equation) ?>
+    <?= $form->field($model, 'equation')->textInput(['maxlength' => true]) ?>
 
-			<?= $form->field($model, "[$index]value")->textInput(['maxlength' => true])->label($model->value) ?>
+    <?= $form->field($model, 'value')->textInput(['maxlength' => true]) ?>
 
-			<?php //<?= $form->field($model, "[$index]rule_id")->textInput()->label($model->rule_id) ?>
+    <?php //<?= $form->field($model, 'rule_id')->textInput() ?>
 
-			<?= $form->field($model, "[$index]weight")->textInput()->label($model->weight) ?>
+    <?= $form->field($model, 'weight')->textInput() ?>
 
-			<?php //<?= $form->field($model, "[$index]created_at")->textInput()->label($model->created_at) ?>
+    <?php //<?= $form->field($model, 'created_at')->textInput() ?>
 
-			<?php //<?= $form->field($model, "[$index]updated_at")->textInput()->label($model->updated_at) ?>
-		<?php
-		}
-		?>
+    <?php //<?= $form->field($model, 'updated_at')->textInput() ?>
+
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>

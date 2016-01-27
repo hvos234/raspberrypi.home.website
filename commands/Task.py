@@ -45,7 +45,7 @@ pipes = [0xE1F0F0F0E1, 0xD2F0F0F0D2, 0xF0B2F0F0B2, 0xF0C3F0F0C3, 0xF0F0E4F0E4, 0
 
 # variables
 millis = lambda: int(round(time.time() * 1000))
-waiting_timeout = 1000
+waiting_timeout = 3000 # 1000 was to short
 payload = "fr:" + fr + ",to:" + to + ",ac:" + ac
 
 # start radio
@@ -57,7 +57,7 @@ radio.enableDynamicPayloads()
 radio.setRetries(5,15)
 
 #radio.setPALevel(RF24_PA_MAX)
-radio.setPALevel(RF24_PA_HIGH)
+radio.setPALevel(RF24_PA_MAX)
 radio.setDataRate(RF24_250KBPS)
 #radio.setCRCLength(RF24_CRC_8)
 radio.setChannel(114)
@@ -83,7 +83,7 @@ radio.startListening()
         
 # Wait here until we get a response, or timeout
 waiting_started = millis()
-        
+
 timeout = False
 while (not radio.available()) and (not timeout):
     if (millis() - waiting_started) > waiting_timeout:

@@ -1,7 +1,10 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * use .prop
+ * 
+ * use .prop('selected', true) or .prop('selected', false) instate of
+ * .attr('selected', 'selected') or .removeAttr('selected') and also
+ * for readonly, if you do use .attr / .removeAttr the browser won`t 
+ * update the select box proper and the javascript won`t get the right value
  */
 
 $(document).ready(function(){
@@ -30,7 +33,7 @@ $(document).ready(function(){
         // first in reverse order
         $($('.RuleCondition-row').get().reverse()).each(function(index) { 
             if('table-row' == $(this).css('display')){
-                $(this).find('.RuleCondition-value').val('{$none}');
+                $(this).find('.RuleCondition-value').val(tNone);
                 $(this).css('display', 'none');
                 RuleConditionShowHideButton();
                 return false;
@@ -69,14 +72,46 @@ $(document).ready(function(){
     
     RuleConditionShowHideButton();
     
-    // on click Add Condition button (RuleCondition_add)
+    // onchange RuleCondtion Condition, hide or show
+    // the RuleCondition Condition Values
+    // add a onchange function to all the RuleCondition-condition
+    $('.RuleCondition-condition').on('change', function() {
+        RuleConditionShowHideConditionValue($(this).attr('index'));
+    });
+    
+    // show or hide on loading page
+    $('.RuleCondition-condition').each(function() {
+        RuleConditionShowHideConditionValue($(this).attr('index'));
+    });
+    
+    // hide or show the RuleConditionValue optiongroups.
+    // use the index to now witch row it is, and show or 
+    // hide the optgroup, and select the first option
+    // from the optgroup that is visible
+    
+    // use .prop
+    function RuleConditionShowHideConditionValue(index){
+        var value = $("select[name='RuleCondition["+index+"][condition]']").val();
+        
+        $("select[name='RuleCondition["+index+"][condition_value]'] option").prop('selected', false)  // unselect all 
+        $("select[name='RuleCondition["+index+"][condition_value]'] optgroup").each(function() {
+            if(value == $(this).attr('label')){
+                $(this).show();
+                $(this).children().first().prop('selected', true);
+            }else {
+                $(this).hide();
+            }
+        });
+    }
+    
+    // on click Add Action button (RuleAction_add)
     // loop trough all the table rows and set by the
     // first one the display on table-row and exit.
     // Oh yeah and set the name and the value fields
     $('#RuleAction_add').on('click', function() {
         $('.RuleAction-row').each(function( index ) {
             if('none' == $(this).css('display')){
-                $(this).find('.RuleAction-value').val('');
+                $(this).find('.RuleAction-value_value').val('');
                 $(this).css('display', 'table-row');
                 RuleActionShowHideButton();
                 return false;
@@ -86,7 +121,7 @@ $(document).ready(function(){
         return false;
     });
     
-    // on click Remove Condition button (RuleCondition_remove)
+    // on click Remove Action button (RuleAction_remove)
     // loop trough all the table rows and set by the
     // last one the display on none and exit.
     // Oh yeah and set the name and the value fields
@@ -94,7 +129,7 @@ $(document).ready(function(){
         // first in reverse order
         $($('.RuleAction-row').get().reverse()).each(function(index) { 
             if('table-row' == $(this).css('display')){
-                $(this).find('.RuleAction-value').val('{$none}');
+                $(this).find('.RuleAction-value_value').val(tNone);
                 $(this).css('display', 'none');
                 RuleActionShowHideButton();
                 return false;
@@ -104,10 +139,10 @@ $(document).ready(function(){
         return false;
     });
     
-    // loop trough all the RuleCondition-row, and
+    // loop trough all the RuleAction-row, and
     // count how many are visible (display table-row)
-    // and show or hide the Add Condition button (RuleCondition_add) 
-    // or the Remove Condition button (RuleCondition_remove)
+    // and show or hide the Add Action button (RuleAction_add) 
+    // or the Remove Action button (RuleAction_remove)
     function RuleActionShowHideButton(){
         var count = 0;
         var visible = 0;
@@ -133,24 +168,110 @@ $(document).ready(function(){
     
     RuleActionShowHideButton();
     
-    // change the value with the value of the values, if 
-    // changed
-    $('.RuleAction-values').each(function() {
-        $(this).on('change', function() {
-            var index = $(this).attr('index');
-            if('value' == $(this).val()){
-                $("input[name='RuleAction["+index+"][value]']").removeAttr('readonly');
-                $("input[name='RuleAction["+index+"][value]']").val('');
-            }else {
-                $("input[name='RuleAction["+index+"][value]']").attr('readonly', 'readonly');
-                $("input[name='RuleAction["+index+"][value]']").val($(this).val());
-            }
-        });
+    // onchange RuleAction Action, hide or show
+    // the RuleAction Action Values
+    // add a onchange function to all the RuleAction-action
+    $('.RuleAction-action').on('change', function() {
+        RuleActionShowHideActionValue($(this).attr('index'));
     });
     
-    // set the selected value from values
-    $('.RuleAction-values').each(function() {
-        var index = $(this).attr('index');
-        $(this).val($("input[name='RuleAction["+index+"][value]']").val());        
+    // show or hide on loading page
+    $('.RuleAction-action').each(function() {
+        RuleActionShowHideActionValue($(this).attr('index'));
     });
+    
+    // hide or show the RuleAction Value optiongroups.
+    // use the index to now witch row it is, and show or 
+    // hide the optgroup, and select the first option
+    // from the optgroup that is visible
+    
+    // use .prop
+    function RuleActionShowHideActionValue(index){
+        var value = $("select[name='RuleAction["+index+"][action]']").val();
+        
+        $("select[name='RuleAction["+index+"][action_value]'] option").prop('selected', false)  // unselect all 
+        $("select[name='RuleAction["+index+"][action_value]'] optgroup").each(function() {
+            if(value == $(this).attr('label')){
+                $(this).show();
+                $(this).children().first().prop('selected', true);
+            }else {
+                $(this).hide();
+            }
+        });
+    }
+    
+    // RuleAction Value
+    // 
+    // onchange RuleAction[0][value] execute 1 to 6
+    // onchange RuleAction[0][values_values] execute 5 and 6
+    
+    // 1. show or hide the RuleAction[0][values_values]
+    // 2. show or hide the RuleAction[0][values_values] optgroups
+    // 3. unselect all the RuleAction[0][values_values] option
+    // 4. select the right RuleAction[0][values_values] option
+    // 5. set the RuleAction[0][value_value] readonly or not
+    // 6. fill the right value from RuleAction[0][values_values] to 
+    //    RuleAction[0][value_value]
+    
+    // onchange 
+    $('.RuleAction-value').on('change', function() {
+        RuleActionValuesValuesShowHide($(this).attr('index'));
+    });
+    
+    // on page load
+    // show or hide on loading page
+    $('.RuleAction-value').each(function() {
+        RuleActionValuesValuesShowHide($(this).attr('index'));
+    });
+    
+    // onchange 
+    $('.RuleAction-values_values').on('change', function() {
+        RuleActionValueValue($(this).attr('index'));
+    });
+        
+    // use .prop
+    function RuleActionValuesValuesShowHide(index){
+        var value = $("select[name='RuleAction["+index+"][value]']").val();
+        
+        if('value' == value || 'on' == value || 'off' == value){
+            $("select[name='RuleAction["+index+"][values_values]']").hide();
+        }else {
+            $("select[name='RuleAction["+index+"][values_values]']").show();
+            
+            $("select[name='RuleAction["+index+"][values_values]'] optgroup").each(function() {
+                if(value == $(this).attr('label')){
+                    $(this).show();
+                    $(this).children().first().prop('selected', true);
+                }else {
+                    $(this).hide();
+                }
+            });
+        }
+        RuleActionValueValue(index);
+    }
+    
+    function RuleActionValueValue(index){
+        
+        if(tNone != $("input[name='RuleAction["+index+"][value_value]']").val()){
+            
+            var value = $("select[name='RuleAction["+index+"][value]']").val();
+
+            if('value' == value){
+                $("input[name='RuleAction["+index+"][value_value]']").prop('readonly', false);
+                $("input[name='RuleAction["+index+"][value_value]']").val('');
+
+            }else if('on' == value){
+                $("input[name='RuleAction["+index+"][value_value]']").prop('readonly', true);
+                $("input[name='RuleAction["+index+"][value_value]']").val('1');
+
+            }else if('off' == value){
+                $("input[name='RuleAction["+index+"][value_value]']").prop('readonly', true);
+                $("input[name='RuleAction["+index+"][value_value]']").val('0');
+
+            }else {
+                $("input[name='RuleAction["+index+"][value_value]']").prop('readonly', true);
+                $("input[name='RuleAction["+index+"][value_value]']").val($("select[name='RuleAction["+index+"][values_values]']").val());
+            }
+        }
+    }
 });

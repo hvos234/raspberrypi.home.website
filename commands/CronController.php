@@ -12,14 +12,7 @@ use yii\console\Controller;
 use app\models\Cronjob;
 use app\models\CronjobSearch;
 
-use app\models\TaskDefined;
-use app\models\TaskDefinedSearch;
-
-/**
- * If cron execute it the default date and time are wrong,
- * this fix it
- */
-date_default_timezone_set('Europe/Amsterdam');
+use app\models\Setting;
 
 /**
  * This console controller is called by the server cron
@@ -32,6 +25,15 @@ class CronController extends Controller
      */
     public function actionIndex()
     {
+				/**
+				 * If cron execute it the default date and time are wrong,
+				 * this fix it (date_default_timezone_set)
+				 */
+				$settingModel = Setting::find()->where(['name' => 'date_default_timezone'])->one();
+				if(isset($settingModel->data) and !empty($settingModel->data)){
+					date_default_timezone_set($settingModel->data);
+				}
+				
         $modelCronjob = new Cronjob();
 				$modelCronjob->cron();
     }

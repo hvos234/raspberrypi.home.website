@@ -18,6 +18,7 @@ class SettingSearch extends Setting
     public function rules()
     {
         return [
+						[['id'], 'integer'],
             [['name', 'description', 'data', 'created_at', 'updated_at'], 'safe'],
         ];
     }
@@ -55,6 +56,7 @@ class SettingSearch extends Setting
         }
 
         $query->andFilterWhere([
+						'id' => $this->id,
 						'name' => $this->name,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

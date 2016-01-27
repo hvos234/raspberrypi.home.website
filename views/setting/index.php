@@ -8,6 +8,7 @@ use yii\grid\GridView;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 use app\models\HelperData;
+use app\models\Setting;
 
 $this->title = Yii::t('app', 'Settings');
 $this->params['breadcrumbs'][] = $this->title;

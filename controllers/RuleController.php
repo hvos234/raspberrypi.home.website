@@ -107,7 +107,7 @@ class RuleController extends Controller
 					$modelsRuleAction[$i] = new RuleAction();
 					// if it is not the first one, there must be always one condition
 					if(0 < $i){
-						$modelsRuleAction[$i]->value = Yii::t('app', '- None -');
+						$modelsRuleAction[$i]->value_value = Yii::t('app', '- None -');
 						$modelsRuleAction[$i]->weight = $i;
 					}
 				}
@@ -136,11 +136,15 @@ class RuleController extends Controller
 						}
 						// change the rule_id, and save
 						foreach($modelsRuleAction as $modelRuleAction){
-							if(Yii::t('app', '- None -') != $modelRuleAction->value){
+							//echo('$modelRuleAction: ') . '<br/>' . PHP_EOL;
+							//var_dump($modelRuleAction);
+							if(Yii::t('app', '- None -') != $modelRuleAction->value_value){
 								$modelRuleAction->rule_id = $model->id;
 								$modelRuleAction->save(false);
 							}
 						}
+						
+						//exit();
 
 						return $this->redirect(['view', 'id' => $model->id]);
 					}
@@ -188,7 +192,7 @@ class RuleController extends Controller
 				for($i=count($modelsRuleAction); $i <= 4; $i++){
 					$modelsRuleAction[$i] = new RuleAction();
 					$modelsRuleAction[$i]->rule_id = $id;
-					$modelsRuleAction[$i]->value = Yii::t('app', '- None -');
+					$modelsRuleAction[$i]->value_value = Yii::t('app', '- None -');
 					$modelsRuleAction[$i]->weight = $i;
 				}
 				
@@ -204,13 +208,17 @@ class RuleController extends Controller
 							if(Yii::t('app', '- None -') != $modelRuleCondition->value){
 								$modelRuleCondition->rule_id = $model->id;
 								$modelRuleCondition->save(false);
+							}else {
+								$modelRuleCondition->delete();
 							}
 						}
 						// change the rule_id, and save
 						foreach($modelsRuleAction as $modelRuleAction){
-							if(Yii::t('app', '- None -') != $modelRuleAction->value){
+							if(Yii::t('app', '- None -') != $modelRuleAction->value_value){
 								$modelRuleAction->rule_id = $model->id;
 								$modelRuleAction->save(false);
+							}else {
+								$modelRuleAction->delete();
 							}
 						}
 
