@@ -97,7 +97,6 @@ class Task extends \yii\db\ActiveRecord
 		
 		/**
 		 * execute
-		 * Is a static function so i can use it in the conditions
 		 * 
 		 * @param type $from_device_id
 		 * @param type $to_device_id
@@ -105,7 +104,9 @@ class Task extends \yii\db\ActiveRecord
 		 * @return type
 		 */
 		public static function execute($from_device_id, $to_device_id, $action_id){
-			// sudo visudo and add exception www-data ALL=(ALL) NOPASSWD: ALL, and use sudo
+			// sudo visudo
+			// add www-data ALL=(ALL) NOPASSWD: ALL
+			// to grant execute right python
 			$command = 'sudo python /var/www/html/home/commands/Task.py ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
 			exec(escapeshellcmd($command), $output, $return_var);
 			

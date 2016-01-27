@@ -73,20 +73,11 @@ use yii\widgets\ActiveForm;
 					<td>
 						<table>
 							<tr>								
-								<td><?= $form->field($modelRuleAction, "[$index]values_values", ['inputOptions' => ['class' => 'form-control RuleAction-values_values', 'index' => $index]])->dropDownList($modelRuleAction->values_values)->label(false) ?></td>
+								<td><?= $form->field($modelRuleAction, "[$index]values_values", ['inputOptions' => ['class' => 'form-control RuleAction-values_values', 'index' => $index]])->dropDownList($modelRuleAction->values_values, ['options' => [$modelRuleAction->value_value => ['Selected' => true]]])->label(false) ?></td>
 								<td><?= $form->field($modelRuleAction, "[$index]value_value", ['inputOptions' => ['class' => 'form-control RuleAction-value_value', 'index' => $index]])->textInput(['maxlength' => true, 'readonly' => array_key_exists($modelRuleAction['value_value'], $modelRuleAction->values)])->label(false) ?></td>
 							</tr>
 						</table>
 					</td>
-					
-					<?php /*<td>
-						<table>
-							<tr>								
-								<td><?= $form->field($modelRuleAction, "[$index]values", ['inputOptions' => ['class' => 'form-control RuleAction-values', 'index' => $index]])->dropDownList($modelRuleAction->values)->label(false) ?></td>
-								<td><?= $form->field($modelRuleAction, "[$index]value", ['inputOptions' => ['class' => 'form-control RuleAction-value', 'index' => $index]])->textInput(['maxlength' => true, 'readonly' => array_key_exists($modelRuleAction['value'], $modelRuleAction->values)])->label(false) ?></td>
-							</tr>
-						</table>
-					</td>*/ ?>
 					<td><?= $form->field($modelRuleAction, "[$index]weight")->dropDownList($modelRuleAction->weights)->label(false) ?></td>
 				</tr>
 				<?php

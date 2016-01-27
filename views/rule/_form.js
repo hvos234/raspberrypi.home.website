@@ -91,13 +91,37 @@ $(document).ready(function(){
     
     // use .prop
     function RuleConditionShowHideConditionValue(index){
-        var value = $("select[name='RuleCondition["+index+"][condition]']").val();
+        var condition_val = $("select[name='RuleCondition["+index+"][condition]']").val();
+        var condition_value_val = $("select[name='RuleCondition["+index+"][condition_value]']").val();
+        var condition_value_optgroup_label = $("select[name='RuleCondition["+index+"][condition_value]'] option:selected").parent().attr('label');
         
         $("select[name='RuleCondition["+index+"][condition_value]'] option").prop('selected', false)  // unselect all 
         $("select[name='RuleCondition["+index+"][condition_value]'] optgroup").each(function() {
-            if(value == $(this).attr('label')){
+            if(condition_val == $(this).attr('label')){
                 $(this).show();
-                $(this).children().first().prop('selected', true);
+                //$(this).children().first().prop('selected', true);
+                
+                // check if this optgroup is not the same as the last condition_value_optgroup
+                // if not select first option
+                var element = $(this);
+                
+                if(condition_value_optgroup_label != $(element).attr('label')){
+                    $(element).children().first().prop('selected', true);
+                    
+                }else {
+                    // loop trough the options, and check if the condition_value exists
+                    // in the one of the options
+                    var condition_value_val_exists = false;
+                    $("select[name='RuleCondition["+index+"][condition_value]'] optgroup option").each(function() {
+                        if(condition_value_val == $(this).val()){
+                            condition_value_val_exists = true;
+                            $(this).prop('selected', true);
+                        }
+                    });
+                    if(!condition_value_val_exists){
+                        $(element).children().first().prop('selected', true);
+                    }
+                }
             }else {
                 $(this).hide();
             }
@@ -186,14 +210,38 @@ $(document).ready(function(){
     // from the optgroup that is visible
     
     // use .prop
-    function RuleActionShowHideActionValue(index){
-        var value = $("select[name='RuleAction["+index+"][action]']").val();
+    function RuleActionShowHideActionValue(index){       
+        var action_val = $("select[name='RuleAction["+index+"][action]']").val();
+        var action_value_val = $("select[name='RuleAction["+index+"][action_value]']").val();
+        var action_value_optgroup_label = $("select[name='RuleAction["+index+"][action_value]'] option:selected").parent().attr('label');
         
         $("select[name='RuleAction["+index+"][action_value]'] option").prop('selected', false)  // unselect all 
         $("select[name='RuleAction["+index+"][action_value]'] optgroup").each(function() {
-            if(value == $(this).attr('label')){
+            if(action_val == $(this).attr('label')){
                 $(this).show();
-                $(this).children().first().prop('selected', true);
+                //$(this).children().first().prop('selected', true);
+                
+                // check if this optgroup is not the same as the last condition_value_optgroup
+                // if not select first option
+                var element = $(this);
+                
+                if(action_value_optgroup_label != $(element).attr('label')){
+                    $(element).children().first().prop('selected', true);
+                    
+                }else {
+                    // loop trough the options, and check if the condition_value exists
+                    // in the one of the options
+                    var action_value_val_exists = false;
+                    $("select[name='RuleAction["+index+"][action_value]'] optgroup option").each(function() {
+                        if(action_value_val == $(this).val()){
+                            action_value_val_exists = true;
+                            $(this).prop('selected', true);
+                        }
+                    });
+                    if(!action_value_val_exists){
+                        $(element).children().first().prop('selected', true);
+                    }
+                }
             }else {
                 $(this).hide();
             }
@@ -230,18 +278,43 @@ $(document).ready(function(){
     });
         
     // use .prop
-    function RuleActionValuesValuesShowHide(index){
-        var value = $("select[name='RuleAction["+index+"][value]']").val();
+    function RuleActionValuesValuesShowHide(index){        
+        var value_val = $("select[name='RuleAction["+index+"][value]']").val();
+        var values_values_val = $("select[name='RuleAction["+index+"][values_values]']").val();
+        var values_values_optgroup_label = $("select[name='RuleAction["+index+"][values_values]'] option:selected").parent().attr('label');
+        alert('value_val: ' + value_val + ' values_values_val: ' + values_values_val + ' values_values_optgroup_label: ' + values_values_optgroup_label);
         
-        if('value' == value || 'on' == value || 'off' == value){
+        if('value' == value_val || 'on' == value_val || 'off' == value_val){
             $("select[name='RuleAction["+index+"][values_values]']").hide();
         }else {
             $("select[name='RuleAction["+index+"][values_values]']").show();
             
             $("select[name='RuleAction["+index+"][values_values]'] optgroup").each(function() {
-                if(value == $(this).attr('label')){
+                if(value_val == $(this).attr('label')){
                     $(this).show();
-                    $(this).children().first().prop('selected', true);
+                    //$(this).children().first().prop('selected', true);
+                    
+                    // check if this optgroup is not the same as the last condition_value_optgroup
+                    // if not select first option
+                    var element = $(this);
+
+                    if(values_values_optgroup_label != $(element).attr('label')){
+                        $(element).children().first().prop('selected', true);
+
+                    }else {
+                        // loop trough the options, and check if the condition_value exists
+                        // in the one of the options
+                        var values_values_val_exists = false;
+                        $("select[name='RuleAction["+index+"][values_values]'] optgroup option").each(function() {
+                            if(values_values_val == $(this).val()){
+                                values_values_val_exists = true;
+                                $(this).prop('selected', true);
+                            }
+                        });
+                        if(!values_values_val_exists){
+                            $(element).children().first().prop('selected', true);
+                        }
+                    }
                 }else {
                     $(this).hide();
                 }
