@@ -155,4 +155,8 @@ class Setting extends \yii\db\ActiveRecord
 			
 			return $return;
 		}
+		
+		public static function getOneByName($name){
+			return Setting::find()->select('data')->where(['name' => $name])->asArray()->one();
+		}
 }

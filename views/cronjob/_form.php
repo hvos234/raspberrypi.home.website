@@ -37,7 +37,9 @@ use dosamigos\datetimepicker\DateTimePicker;
 		<?= $form->field($model, 'recurrence_year')->dropDownList($model->recurrence_years); ?>
 
     <?php //<?= $form->field($model, 'job')->textInput(['maxlength' => true]) ?>
-		<?= $form->field($model, 'job')->dropDownList($model->jobs); ?>
+		<?= $form->field($model, 'job', ['inputOptions' => ['class' => 'form-control Cronjob-job']])->dropDownList($model->jobs); ?>
+	
+		<?= $form->field($model, 'job_id', ['inputOptions' => ['class' => 'form-control Cronjob-job_id']])->dropDownList($model->job_ids); ?>
 
     <?php //<?= $form->field($model, 'job_id')->textInput() ?>
 		<?= $form->field($model, 'task_id')->dropDownList($task_ids); ?>
@@ -91,41 +93,20 @@ use dosamigos\datetimepicker\DateTimePicker;
 </div>
 
 <?php
-// this is the script that hide or show the job ids, when job is changed or selected.
+// this is the script that hide or show the action, when the 
+// to device is changed or select.
+$none = Yii::t('app', '- None -');
+
+// this way i do not have to copy the script from
+// the file below here
+ob_start();		
+include('_form.js');
+$script_contents = ob_get_contents();
+ob_end_clean();
+
 $script = <<< JS
-$(document).ready(function(){
-	
-	function setHideShowTaskRuleName(){
-		// show all actions jopined to the device
-		// get the value of to_device_id
-		var job = $('#cronjob-job option:selected').val(); // returns null if nothing has selected
-	
-		if(null != job){
-			// hide both task_id and rule_id
-			$('.field-cronjob-task_id').hide();
-			$('.field-cronjob-rule_id').hide();
-			
-			// select first job id
-			$('#cronjob-' + job + '_id option:first-child').attr("selected", "selected");
-			
-			// show task or rule
-			$('.field-cronjob-' + job + '_id').show();
-	
-			// enable job_id, as last if there is something wrong the
-			// job_id will not be enabled
-			$('#cronjob-' + job + '_id').removeAttr('disabled');
-		}
-	}
-	
-	// by default hide / show the actions
-	setHideShowTaskRuleName();
-	
-	// if the to device change, hide or show the actions
-	$('#cronjob-job').on('change', function() {
-		setHideShowTaskRuleName();
-	});
-	
-});
+var tNone = '{$none}';
+{$script_contents}
 JS;
 
 // jQuery will be loaded as last, therefor you need to use

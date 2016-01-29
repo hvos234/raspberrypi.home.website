@@ -121,7 +121,7 @@ class Rule extends \yii\db\ActiveRecord
 		
 		// create weights
 		$key = 0;
-		foreach($this->getRuleAllIdName() as $id => $name){
+		foreach($this->getAllIdName() as $id => $name){
 			$this->weights[$key] = $key;
 			$key++;
 		}
@@ -199,7 +199,7 @@ class Rule extends \yii\db\ActiveRecord
 			 ];
 		}
 		
-		public function getRuleAllIdName(){
+		public function getAllIdName(){
 			return ArrayHelper::map(Rule::find()->asArray()->all(), 'id', 'name');
 		}
 }

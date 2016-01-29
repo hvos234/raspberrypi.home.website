@@ -12,6 +12,8 @@ use yii\behaviors\TimestampBehavior;
 // The ArrayHelper, is used for building a map (key-value pairs).
 use yii\helpers\ArrayHelper;
 
+use app\models\Setting;
+
 /**
  * This is the model class for table "{{%task}}".
  *
@@ -104,13 +106,25 @@ class Task extends \yii\db\ActiveRecord
 		 * @return type
 		 */
 		public static function execute($from_device_id, $to_device_id, $action_id){
+			$path_script_task = Setting::getOneByName('path_script_task');
+			
 			// sudo visudo
 			// add www-data ALL=(ALL) NOPASSWD: ALL
 			// to grant execute right python
-			$command = 'sudo python /var/www/html/home/commands/Task.py ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
+			$command = 'sudo ' . $path_script_task['data'] . ' ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
 			exec(escapeshellcmd($command), $output, $return_var);
 			
-			// if nothing is returned, or a error
+			$output = end($output);
+			if(empty($output) or 0 === strpos($output, 'error')){
+				return $output;
+			}else {
+				if(0 != $return_var){
+					return 'error:failed to execute command';
+				}
+			}
+			return $output;
+			
+			/*// if nothing is returned, or a error
 			$output = end($output);
 			if(empty($output) or 0 === strpos($output, 'error')){
 				// retry
@@ -131,7 +145,7 @@ class Task extends \yii\db\ActiveRecord
 				}
 			}
 			
-			return $output;
+			return $output;*/
 		}
 		
 		public function getTaskBetweenDate($between, $from_device_id = '', $to_device_id = '', $action_id = ''){

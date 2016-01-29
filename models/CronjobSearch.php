@@ -18,7 +18,7 @@ class CronjobSearch extends Cronjob
     public function rules()
     {
         return [
-            [['id', 'task_id', 'rule_id'], 'integer'],
+            [['id', 'job_id', 'task_id', 'rule_id'], 'integer'],
             [['name', 'description', 'recurrence_minute', 'recurrence_hour', 'recurrence_day', 'recurrence_week', 'recurrence_month', 'recurrence_year', 'job', 'start_at', 'end_at', 'run_at', 'created_at', 'updated_at'], 'safe'],
         ];
     }
@@ -60,6 +60,8 @@ class CronjobSearch extends Cronjob
             'recurrence_week' => $this->recurrence_week,
             'recurrence_month' => $this->recurrence_month,
             'recurrence_year' => $this->recurrence_year,
+            'job' => $this->job,
+            'job_id' => $this->job_id,
             'task_id' => $this->task_id,
             'rule_id' => $this->rule_id,
             'start_at' => $this->start_at,
@@ -73,8 +75,8 @@ class CronjobSearch extends Cronjob
             ->andFilterWhere(['like', 'description', $this->description])
             ->andFilterWhere(['like', 'recurrence_minute', $this->recurrence_minute])
             ->andFilterWhere(['like', 'recurrence_hour', $this->recurrence_hour])
-            ->andFilterWhere(['like', 'recurrence_day', $this->recurrence_day])
-            ->andFilterWhere(['like', 'job', $this->job]);
+            ->andFilterWhere(['like', 'recurrence_day', $this->recurrence_day]);
+            //->andFilterWhere(['like', 'job', $this->job]);
 
         return $dataProvider;
     }

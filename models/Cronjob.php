@@ -9,6 +9,8 @@ use Yii;
 use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
 
+use yii\helpers\ArrayHelper;
+
 use app\models\TaskDefined;
 use app\models\TaskDefinedSearch;
 
@@ -106,10 +108,41 @@ class Cronjob extends \yii\db\ActiveRecord
 		];
 		
 		public $jobs = [
-			'task' => 'Task',
+			'taskdefined' => 'TaskDefined',
 			'rule' => 'Rule',
 		];
+		
+		
+		
+		public $job_ids = [];
+		public $weights = [];
 	
+		public function init() {
+			// add all task defined
+			$this->job_ids['taskdefined'] = TaskDefined::getAllIdName();
+			
+			// add all task defined
+			$this->job_ids['rule'] = Rule::getAllIdName();
+			
+			// translate all
+			foreach ($this->job_ids as $job => $jobs){
+				foreach ($jobs as $id => $name){
+					$this->job_ids[$job][$id] = Yii::t('app', $name);
+				}
+			}
+
+			// create weights
+			$key = 0;
+			foreach($this->getAllIdName() as $id => $name){
+				$this->weights[$key] = $key;
+				$key++;
+			}
+
+			$this->weights[$key] = $key;
+
+			parent::init();
+		}
+		
     /**
      * @inheritdoc
      */
@@ -124,10 +157,10 @@ class Cronjob extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'description', 'recurrence_minute', 'recurrence_hour', 'recurrence_day', 'recurrence_week', 'recurrence_month', 'recurrence_year', 'job', 'task_id', 'rule_id', 'start_at'], 'required'],
+            [['name', 'description', 'recurrence_minute', 'recurrence_hour', 'recurrence_day', 'recurrence_week', 'recurrence_month', 'recurrence_year', 'job', 'job_id', 'task_id', 'rule_id', 'start_at'], 'required'],
             [['description'], 'string'],
             [['start_at', 'end_at', 'run_at', 'created_at', 'updated_at'], 'safe'],
-            [['task_id', 'rule_id'], 'integer'],
+            [['job_id', 'task_id', 'rule_id'], 'integer'],
             [['name'], 'string', 'max' => 255],
             [['recurrence_minute', 'recurrence_hour', 'recurrence_day', 'recurrence_week', 'recurrence_month', 'recurrence_year'], 'string', 'max' => 20],
             [['job'], 'string', 'max' => 32]
@@ -140,7 +173,7 @@ class Cronjob extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
+            'id' => Yii::t('app', 'Id'),
             'name' => Yii::t('app', 'Name'),
             'description' => Yii::t('app', 'Description'),
             'recurrence_minute' => Yii::t('app', 'Minutes'),
@@ -150,6 +183,7 @@ class Cronjob extends \yii\db\ActiveRecord
             'recurrence_month' => Yii::t('app', 'Months'),
             'recurrence_year' => Yii::t('app', 'Years'),
             'job' => Yii::t('app', 'Job'),
+            'job_id' => Yii::t('app', 'Job Id'),
             'task_id' => Yii::t('app', 'Task Name'),
             'rule_id' => Yii::t('app', 'Rule Name'),
             'start_at' => Yii::t('app', 'Start At'),
@@ -235,5 +269,9 @@ class Cronjob extends \yii\db\ActiveRecord
 		public function getAll(){
 			// get all the actions
 			return Cronjob::find()->asArray()->all();
-		}	
+		}
+		
+		public function getAllIdName(){
+			return ArrayHelper::map(Cronjob::find()->asArray()->all(), 'id', 'name');
+		}
 }
