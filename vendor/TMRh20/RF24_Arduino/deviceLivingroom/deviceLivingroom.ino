@@ -1,3 +1,5 @@
+#include <stdlib.h> // used for the dtostrf function
+
 #include "DHT.h"
 
 #include <SPI.h>
@@ -6,8 +8,8 @@
 
 #define BAUDRATE 9600
 
-#define MASTERPIPE 0
-#define MYPIPE 1
+#define MASTERID 1  // number of the master device
+#define MYID 2  // number of the device
 
 // Uncomment whatever type you're using!
 //#define DHTTYPE DHT11   // DHT 11 
@@ -20,7 +22,7 @@ DHT dht(DHTPIN, DHTTYPE); // set dht
 
 RF24 radio(7,8);                // nRF24L01(+) radio attached using Getting Started board 
 
-byte addresses[][6] = {"1Node", "2Node", "3Node", "4Node", "5Node", "6Node"};
+byte pipes[][6] = {"1Node", "2Node", "3Node", "4Node", "5Node", "6Node"};
 
 // declare actions
 #define ACTIONTEMP 1 // send temperature
@@ -28,12 +30,13 @@ byte addresses[][6] = {"1Node", "2Node", "3Node", "4Node", "5Node", "6Node"};
 #define ACTIONTEMPHUM 3 // send temperature and humidity
 
 // declare variables
-char payload_receive[11]; // max is 32 bytes even with enableDynamicPayloads
-char payload_send[11];
+int payload_size = 10; // plus 1, i think with \0 (so 9 char becomes 10))
+char payload_receive[10]; // max is 32 bytes even with enableDynamicPayloads
+char payload_send[10];
 char message[10];
 
 //int task; // can not send task it gets to big
-//int from;
+//int fr;
 int to;
 int ac;
 
@@ -48,16 +51,16 @@ void setup(void)
   Serial.println("Radio begin.");
   radio.begin();
   
-  radio.setPayloadSize(11);
+  radio.setPayloadSize(10);
   radio.setRetries(15,15); // optionally, increase the delay between retries & # of retries
   radio.setAutoAck(1); // Ensure autoACK is enabled  
   radio.setPALevel(RF24_PA_HIGH);
   radio.setDataRate(RF24_250KBPS);
-  radio.setCRCLength(RF24_CRC_8);
+  //radio.setCRCLength(RF24_CRC_8);
   radio.setChannel(103);
   
-  radio.openWritingPipe(addresses[MYPIPE]);
-  radio.openReadingPipe(1,addresses[MASTERPIPE]);
+  radio.openWritingPipe(pipes[(MASTERID -1)]);
+  radio.openReadingPipe(1,pipes[(MYID -1)]);
   
   radio.startListening();
   
@@ -65,8 +68,8 @@ void setup(void)
 }
 
 char *messageTempHum(int ac, char* message){
-  char tem[5]; //2 int, 2 dec, 1 point, and \0
-  char hum[5];
+  char tem[10]; //2 int, 2 dec, 1 point, and \0
+  char hum[10];
   
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
@@ -97,6 +100,12 @@ char *messageTempHum(int ac, char* message){
     dtostrf(h, 2, 2, hum);  //Floats don't work in sprintf statements on Arduino without pain, so convert to string separately.
     dtostrf(t, 2, 2, tem);
     
+    Serial.print("Message: ");
+    Serial.print("hum: ");
+    Serial.print(hum);
+    Serial.print("tem: ");
+    Serial.println(tem);
+    
     // build message
     if(ACTIONTEMP == ac){ // temperature
       sprintf(message, "tem:%s", tem);
@@ -116,21 +125,25 @@ void loop(void){
     
     while ( radio.available() ) {     // Is there anything ready for us?
       memset(payload_receive, 0, sizeof(payload_receive)); // clear it
-      radio.read(&payload_receive, sizeof(payload_receive));
+      radio.read(&payload_receive, 10);
     }      
     
-    Serial.print("Received: ");
+    Serial.println("Received ..");
+    Serial.print("Payload size: ");
+    Serial.println(sizeof(payload_receive));
+    Serial.print("Payload: ");
     Serial.println(payload_receive);
       
     //from = 0;
-    //to = 0;
+    to = 0;
     ac = 0;
-    sscanf((char *)payload_receive, "ac:%d", &ac);
+    sscanf((char *)payload_receive, "to:%d,ac:%d", &to, &ac);
+    
+    Serial.print("Action: ");
+    Serial.println(ac);
     
     memset(message, 0, sizeof(message)); // clear it
     if(ACTIONTEMP == ac || ACTIONHUM == ac || ACTIONTEMPHUM == ac){
-      Serial.print("Action: ");
-      Serial.println(ac);
       messageTempHum(ac, message);
       
     }else {
@@ -142,16 +155,19 @@ void loop(void){
     Serial.println(message);
       
     memset(payload_send, 0, sizeof(payload_send)); // clear it
-    sprintf(payload_send, "%s\0", message);
+    sprintf(payload_send, "%s", message);
     
     // First, stop listening so we can talk
     radio.stopListening();
     
-    Serial.print("Sending: ");
+    Serial.println("Sending ..");
+    Serial.print("Payload size: ");
+    Serial.println(sizeof(payload_send));
+    Serial.print("Payload: ");
     Serial.println(payload_send);
-        
+    
     // Send the final one back.
-    bool ok = radio.write( payload_send, sizeof(payload_send) );
+    bool ok = radio.write( payload_send, 10 );
     
     if (ok){
       Serial.println("Sending ok.");

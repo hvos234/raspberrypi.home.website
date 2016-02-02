@@ -37,9 +37,13 @@ RF24 radio(22,0);
 
 // Radio pipe addresses for the 2 nodes to communicate.
 const uint8_t pipes[][6] = {"1Node", "2Node", "3Node", "4Node", "5Node", "6Node"};
+int payload_size = 10; // plus 1, i think with \0 (so 9 char becomes 10))
 
 int main(int argc, char** argv) 
 {
+    int fr = atoi(argv[1]);
+    int to = atoi(argv[2]);
+    int ac = atoi(argv[3]);
     
     printf("vendor/TMRh20/RF24_RPi/Task\n");
     
@@ -49,16 +53,16 @@ int main(int argc, char** argv)
 
     delay(5);
     
-    radio.setPayloadSize(11);
+    radio.setPayloadSize(10);
     radio.setRetries(15,15); // optionally, increase the delay between retries & # of retries
     radio.setAutoAck(1); // Ensure autoACK is enabled
     radio.setPALevel(RF24_PA_HIGH);
     radio.setDataRate(RF24_250KBPS);
-    radio.setCRCLength(RF24_CRC_8);
+    //radio.setCRCLength(RF24_CRC_8);
     radio.setChannel(103);
     
-    radio.openWritingPipe(pipes[0]);
-    radio.openReadingPipe(1,pipes[3]);
+    radio.openWritingPipe(pipes[(to-1)]); // atoi() change a char to a int
+    radio.openReadingPipe(1,pipes[(fr-1)]);
     
     radio.startListening();
     
@@ -69,20 +73,25 @@ int main(int argc, char** argv)
     
     // Take the time, and send it.  This will block until complete
 
-    char payload_send[11] = "";
-    //sprintf(payload_send, "%s", "ac:3");
-    snprintf(payload_send, 11, "to:%s,ac:%s", argv[2], argv[3]);
+    char payload_send[10] = "";
+    snprintf(payload_send, 10, "to:%d,ac:%d", to, ac);
     
-
+    char payload_send_size[10] = "";
+    snprintf(payload_send_size, 10, "%d", sizeof(payload_send));
+    
     printf("Sending ..\n");
+    printf("Payload size: ");
+    printf(payload_send_size);
+    printf("\n");
+    printf("Payload: ");
     printf(payload_send);
     printf("\n");
 
-    bool ok = radio.write( &payload_send, sizeof(payload_send) );
+    bool ok = radio.write( &payload_send, 10 );
 
     if (!ok){
         printf("failed.\n");
-        return 1;
+        exit(1);
     }
     
     // Now, continue listening
@@ -91,6 +100,9 @@ int main(int argc, char** argv)
     // Wait here until we get a response, or timeout (250ms)
     unsigned long started_waiting_at = millis();
     bool timeout = false;
+    
+    // Reading temperature or humidity takes about 250 milliseconds!
+    // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
     while ( ! radio.available() && ! timeout ) {
         if (millis() - started_waiting_at > 3000 ) {
             timeout = true;
@@ -101,18 +113,27 @@ int main(int argc, char** argv)
     // Describe the results
     if ( timeout ) {
         printf("Failed, response timed out.\n");
-        return 1;
+        exit(1);
         
     } else {
         // Grab the response, compare, and send to debugging spew
-        char payload_receive[11] = "";
-        radio.read( &payload_receive, sizeof(payload_receive) );
+        char payload_receive[10] = "";
+        radio.read( &payload_receive, 10 );
 
+        char payload_receive_size[10] = "";
+        snprintf(payload_receive_size, 32, "%d", 10);
         // Spew it
-        printf("Received: ");
+        printf("Received ..\n");
+        printf("Payload size: ");
+        printf(payload_receive_size);
+        printf("\n");
+        printf("Payload: ");
         printf(payload_receive);
         printf("\n");
+        
+        printf(payload_receive);
+        exit(0);
     }
-    return 0;
+    exit(1);
 }
 

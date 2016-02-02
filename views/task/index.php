@@ -12,20 +12,6 @@ $this->title = Yii::t('app', 'Task Defineds');
 
 use app\models\Setting;
 
-$path_script_task = Setting::getOneByName('path_script_task');
-var_dump($path_script_task);
-echo('$path_script_task: ' . $path_script_task['data']) . '<br/>' . PHP_EOL;
-
-$command = 'sudo ' . $path_script_task['data'] . ' 1 4 2';
-exec(escapeshellcmd($command), $output, $return_var);
-
-var_dump($return_var);
-echo('$output: <pre>');
-print_r($output);
-echo('</pre>');
-
-
-
 ?>
 <div class="task-defined-index">
 
