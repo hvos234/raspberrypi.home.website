@@ -39,12 +39,8 @@ use dosamigos\datetimepicker\DateTimePicker;
     <?php //<?= $form->field($model, 'job')->textInput(['maxlength' => true]) ?>
 		<?= $form->field($model, 'job', ['inputOptions' => ['class' => 'form-control Cronjob-job']])->dropDownList($model->jobs); ?>
 	
-		<?= $form->field($model, 'job_id', ['inputOptions' => ['class' => 'form-control Cronjob-job_id']])->dropDownList($model->job_ids); ?>
-
-    <?php //<?= $form->field($model, 'job_id')->textInput() ?>
-		<?= $form->field($model, 'task_id')->dropDownList($task_ids); ?>
-	
-		<?= $form->field($model, 'rule_id')->dropDownList($rule_ids); ?>
+		<?php //<?= $form->field($model, 'job_id')->textInput() ?>
+		<?= $form->field($model, 'job_id', ['inputOptions' => ['class' => 'form-control Cronjob-job_id']])->dropDownList($model->job_ids); ?>    
 
     <?php //<?= $form->field($model, 'start_at')->textInput() ?>
 		<?= $form->field($model, 'start_at')->widget(DateTimePicker::className(), [

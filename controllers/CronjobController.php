@@ -96,8 +96,6 @@ class CronjobController extends Controller
         } else {
             return $this->render('create', [
                 'model' => $model,
-								'task_ids' => ArrayHelper::map($modelTaskDefined->getAll(), 'id', 'name'),
-								'rule_ids' => ['0' => 'Nothing'],
             ]);
         }
     }
@@ -120,8 +118,6 @@ class CronjobController extends Controller
         } else {
             return $this->render('update', [
                 'model' => $model,
-								'task_ids' => ArrayHelper::map($modelTaskDefined->getAll(), 'id', 'name'),
-								'rule_ids' => ['0' => 'Nothing'],
             ]);
         }
     }

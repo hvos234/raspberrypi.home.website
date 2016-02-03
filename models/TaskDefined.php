@@ -87,7 +87,7 @@ class TaskDefined extends \yii\db\ActiveRecord
 			 ];
 		}
 		
-		public function execute($id){
+		public static function execute($id){
 			$model = TaskDefined::findOne($id);
 			
 			$modelTask = new Task();			
@@ -104,10 +104,10 @@ class TaskDefined extends \yii\db\ActiveRecord
 		
 		
 
-		public static function getAll(){
+		/*public static function getAll(){
 			// get all the task defined
 			return TaskDefined::find()->asArray()->all();
-		}
+		}*/
 		
 		public static function getAllIdName(){
 			return ArrayHelper::map(TaskDefined::find()->asArray()->all(), 'id', 'name');

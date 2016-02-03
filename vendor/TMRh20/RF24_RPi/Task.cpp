@@ -55,11 +55,12 @@ int main(int argc, char** argv)
     
     radio.setPayloadSize(10);
     radio.setRetries(15,15); // optionally, increase the delay between retries & # of retries
-    radio.setAutoAck(1); // Ensure autoACK is enabled
+    //radio.setAutoAck(1); // Ensure autoACK is enabled
+    radio.setAutoAck(0); // Ensure autoACK is disabled
     radio.setPALevel(RF24_PA_HIGH);
     radio.setDataRate(RF24_250KBPS);
     //radio.setCRCLength(RF24_CRC_8);
-    radio.setChannel(103);
+    radio.setChannel(114);
     
     radio.openWritingPipe(pipes[(to-1)]); // atoi() change a char to a int
     radio.openReadingPipe(1,pipes[(fr-1)]);
@@ -70,6 +71,7 @@ int main(int argc, char** argv)
     
     // First, stop listening so we can talk.
     radio.stopListening();
+    radio.powerUp();
     
     // Take the time, and send it.  This will block until complete
 
@@ -87,12 +89,15 @@ int main(int argc, char** argv)
     printf(payload_send);
     printf("\n");
 
-    bool ok = radio.write( &payload_send, 10 );
+    //bool ok = radio.write( &payload_send, 10 );
+    radio.write( &payload_send, 10 );
 
-    if (!ok){
+    /*if (!ok){
         printf("failed.\n");
         exit(1);
-    }
+    }*/
+    
+    //radio.powerDown();
     
     // Now, continue listening
     radio.startListening();

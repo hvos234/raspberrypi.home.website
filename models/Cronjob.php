@@ -250,9 +250,8 @@ class Cronjob extends \yii\db\ActiveRecord
 					if($run_at <= $now){
 					
 						switch($cronjob['job']){
-							case 'task':
-								$modelTaskDefined = new TaskDefined();
-								$modelTaskDefined->execute($cronjob['task_id']);
+							case 'taskdefined':
+								TaskDefined::execute($cronjob['job_id']);
 						}
 						
 						// update run_at

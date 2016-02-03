@@ -53,11 +53,12 @@ void setup(void)
   
   radio.setPayloadSize(10);
   radio.setRetries(15,15); // optionally, increase the delay between retries & # of retries
-  radio.setAutoAck(1); // Ensure autoACK is enabled  
+  //radio.setAutoAck(1); // Ensure autoACK is enabled
+  radio.setAutoAck(0); // Ensure autoACK is disabled
   radio.setPALevel(RF24_PA_HIGH);
   radio.setDataRate(RF24_250KBPS);
   //radio.setCRCLength(RF24_CRC_8);
-  radio.setChannel(103);
+  radio.setChannel(114);
   
   radio.openWritingPipe(pipes[(MASTERID -1)]);
   radio.openReadingPipe(1,pipes[(MYID -1)]);
@@ -120,6 +121,7 @@ char *messageTempHum(int ac, char* message){
 }
 
 void loop(void){
+  
   if( radio.available()){
     Serial.println("");
     
@@ -159,6 +161,7 @@ void loop(void){
     
     // First, stop listening so we can talk
     radio.stopListening();
+    radio.powerUp();
     
     Serial.println("Sending ..");
     Serial.print("Payload size: ");
@@ -167,14 +170,17 @@ void loop(void){
     Serial.println(payload_send);
     
     // Send the final one back.
-    bool ok = radio.write( payload_send, 10 );
+    //bool ok = radio.write( payload_send, 10 );
+    radio.write( payload_send, 10 );
     
-    if (ok){
+    
+    /*if (ok){
       Serial.println("Sending ok.");
     }else{
       Serial.println("Sending failed !");
-    }
-      
+    }*/
+     
+    radio.powerDown();
     // Now, resume listening so we catch the next packets.
     radio.startListening();
   }
