@@ -39,6 +39,8 @@ class RuleAction extends \yii\db\ActiveRecord
 		// do not use date
 		unset($this->actions['date']);
 		unset($this->actions_values['date']);
+		// do not use condition
+		unset($this->actions_values['condition']);
 				
 		// get all values
 		$this->values['value'] = Yii::t('app', 'Value');

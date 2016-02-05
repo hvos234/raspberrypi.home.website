@@ -94,6 +94,7 @@ class Setting extends \yii\db\ActiveRecord
 		public static function encodeName($name){
 			$name = strtolower($name);
 			$name = str_replace(' ', '_', $name);
+			$name = str_replace('-', '_', $name);
 			do {
 				$done = strpos($name, '__');
 				$name = str_replace('__', '_', $name);
@@ -156,7 +157,7 @@ class Setting extends \yii\db\ActiveRecord
 			return $return;
 		}
 		
-		public static function getOneByName($name){
+		/*public static function getOneByName($name){
 			return Setting::find()->select('data')->where(['name' => $name])->asArray()->one();
-		}
+		}*/
 }

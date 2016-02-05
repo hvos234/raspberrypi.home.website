@@ -75,7 +75,10 @@ use dosamigos\datetimepicker\DateTimePicker;
 		]);?>
 
     <?php //<?= $form->field($model, 'run_at')->textInput() ?>
-
+		
+		<?= $form->field($model, 'weight')->dropDownList($model->weights); ?>
+	
+	
     <?php //<?= $form->field($model, 'created_at')->textInput() ?>
 
     <?php //<?= $form->field($model, 'updated_at')->textInput() ?>

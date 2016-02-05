@@ -64,6 +64,8 @@ class Rule extends \yii\db\ActiveRecord
 		//'task' => 'Task',
 		'taskdefined' => 'TaskDefined',
 		'setting' => 'Setting',
+		'rule' => 'Rule',
+		'condition' => 'Condition',
 	];
 	
 	
@@ -97,9 +99,7 @@ class Rule extends \yii\db\ActiveRecord
 			'i' => 'Minutes with leading zeros (00 to 59)',
 			's' => 'Seconds, with leading zeros (00 through 59)',
 			///'date(\'u\')' => 'Microseconds (654321)',
-			'class:Condition,function:amiathome,parameter:\'\'' => 'Am i at Home',
-			///'Task::execute($from_device_id,$to_device_id,$action_id)' => 'Task, {id} {name}',
-		]
+		],
 	];
 	
 	public $weights = [];
@@ -113,6 +113,9 @@ class Rule extends \yii\db\ActiveRecord
 		
 		// add all setting
 		$this->values['setting'] = Setting::getAllIdName();
+		
+		// add all setting
+		$this->values['condition'] = Condition::models();
 		
 		// translate all
 		foreach ($this->conditions_actions as $condition_action => $name){
@@ -199,7 +202,7 @@ class Rule extends \yii\db\ActiveRecord
 			 ];
 		}
 		
-		public function getAllIdName(){
+		public static function getAllIdName(){
 			return ArrayHelper::map(Rule::find()->asArray()->all(), 'id', 'name');
 		}
 }

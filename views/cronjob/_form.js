@@ -27,9 +27,11 @@ $(document).ready(function(){
         var job_id_val = $("select[name='Cronjob[job_id]']").val();
         var job_id_optgroup_label = $("select[name='Cronjob[job_id]'] option:selected").parent().attr('label');
         
-        $("select[name='Cronjob[job_id]'] option").prop('selected', false)  // unselect all 
+        $("select[name='Cronjob[job_id]'] option").prop('selected', false);  // unselect all 
         $("select[name='Cronjob[job_id]'] optgroup").each(function() {
+            
             if(job_val == $(this).attr('label')){
+                
                 $(this).show();
                 //$(this).children().first().prop('selected', true);
                 
@@ -43,13 +45,15 @@ $(document).ready(function(){
                 }else {
                     // loop trough the options, and check if the condition_value exists
                     // in the one of the options
+                    // only the options under the correct optgroup
                     var job_id_val_exists = false;
-                    $("select[name='Cronjob[job_id]'] optgroup option").each(function() {
+                    $(element).children("option").each(function() {
                         if(job_id_val == $(this).val()){
                             job_id_val_exists = true;
                             $(this).prop('selected', true);
                         }
                     });
+                    
                     if(!job_id_val_exists){
                         $(element).children().first().prop('selected', true);
                     }

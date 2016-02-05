@@ -42,6 +42,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'start_at',
             'end_at',
             'run_at',
+						'weight',
             'created_at',
             'updated_at',
         ],

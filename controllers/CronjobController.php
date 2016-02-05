@@ -61,7 +61,10 @@ class CronjobController extends Controller
     {
         $searchModel = new CronjobSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
+				$dataProvider->setSort([
+					'defaultOrder' => ['weight' => SORT_ASC]
+				]);				
+				
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,

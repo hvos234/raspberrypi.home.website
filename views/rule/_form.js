@@ -111,8 +111,9 @@ $(document).ready(function(){
                 }else {
                     // loop trough the options, and check if the condition_value exists
                     // in the one of the options
+                    // only the options under the correct optgroup
                     var condition_value_val_exists = false;
-                    $("select[name='RuleCondition["+index+"][condition_value]'] optgroup option").each(function() {
+                    $(element).children("option").each(function() {
                         if(condition_value_val == $(this).val()){
                             condition_value_val_exists = true;
                             $(this).prop('selected', true);
@@ -231,8 +232,9 @@ $(document).ready(function(){
                 }else {
                     // loop trough the options, and check if the condition_value exists
                     // in the one of the options
+                    // only the options under the correct optgroup
                     var action_value_val_exists = false;
-                    $("select[name='RuleAction["+index+"][action_value]'] optgroup option").each(function() {
+                    $(element).children("option").each(function() {
                         if(action_value_val == $(this).val()){
                             action_value_val_exists = true;
                             $(this).prop('selected', true);
@@ -282,7 +284,6 @@ $(document).ready(function(){
         var value_val = $("select[name='RuleAction["+index+"][value]']").val();
         var values_values_val = $("select[name='RuleAction["+index+"][values_values]']").val();
         var values_values_optgroup_label = $("select[name='RuleAction["+index+"][values_values]'] option:selected").parent().attr('label');
-        alert('value_val: ' + value_val + ' values_values_val: ' + values_values_val + ' values_values_optgroup_label: ' + values_values_optgroup_label);
         
         if('value' == value_val || 'on' == value_val || 'off' == value_val){
             $("select[name='RuleAction["+index+"][values_values]']").hide();
@@ -304,8 +305,9 @@ $(document).ready(function(){
                     }else {
                         // loop trough the options, and check if the condition_value exists
                         // in the one of the options
+                        // only the options under the correct optgroup
                         var values_values_val_exists = false;
-                        $("select[name='RuleAction["+index+"][values_values]'] optgroup option").each(function() {
+                        $(element).children("option").each(function() {
                             if(values_values_val == $(this).val()){
                                 values_values_val_exists = true;
                                 $(this).prop('selected', true);

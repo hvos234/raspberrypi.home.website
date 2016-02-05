@@ -119,7 +119,18 @@ class Task extends \yii\db\ActiveRecord
 				return $output;
 			}else {
 				if(0 != $return_var){
-					return 'error:failed to execute command';
+					sleep(1);
+					
+					exec(escapeshellcmd($command), $output, $return_var);
+					$output = end($output);
+					if(empty($output) or 0 === strpos($output, 'error')){
+						return $output;
+					}else {
+						if(0 != $return_var){
+							return 'error:failed to execute command';
+						}
+					}
+					return $output;
 				}
 			}
 			return $output;

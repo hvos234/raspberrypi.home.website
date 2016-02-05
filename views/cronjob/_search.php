@@ -45,6 +45,8 @@ use yii\widgets\ActiveForm;
 
     <?php // echo $form->field($model, 'run_at') ?>
 		<?= $form->field($model, 'start_at') ?>
+	
+		<?= $form->field($model, 'weight') ?>
 
     <?php // echo $form->field($model, 'created_at') ?>
 

@@ -132,10 +132,8 @@ class Cronjob extends \yii\db\ActiveRecord
 			}
 
 			// create weights
-			$key = 0;
-			foreach($this->getAllIdName() as $id => $name){
+			for($key = 0; $key < Cronjob::find()->count(); $key++){
 				$this->weights[$key] = $key;
-				$key++;
 			}
 
 			$this->weights[$key] = $key;
@@ -157,10 +155,10 @@ class Cronjob extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'description', 'recurrence_minute', 'recurrence_hour', 'recurrence_day', 'recurrence_week', 'recurrence_month', 'recurrence_year', 'job', 'job_id', 'task_id', 'rule_id', 'start_at'], 'required'],
+            [['name', 'description', 'recurrence_minute', 'recurrence_hour', 'recurrence_day', 'recurrence_week', 'recurrence_month', 'recurrence_year', 'job', 'job_id', 'start_at', 'weight'], 'required'],
             [['description'], 'string'],
             [['start_at', 'end_at', 'run_at', 'created_at', 'updated_at'], 'safe'],
-            [['job_id', 'task_id', 'rule_id'], 'integer'],
+            [['job_id', 'weight'], 'integer'],
             [['name'], 'string', 'max' => 255],
             [['recurrence_minute', 'recurrence_hour', 'recurrence_day', 'recurrence_week', 'recurrence_month', 'recurrence_year'], 'string', 'max' => 20],
             [['job'], 'string', 'max' => 32]
@@ -189,6 +187,7 @@ class Cronjob extends \yii\db\ActiveRecord
             'start_at' => Yii::t('app', 'Start At'),
             'end_at' => Yii::t('app', 'End At'),
             'run_at' => Yii::t('app', 'Run At'),
+						'weight' => Yii::t('app', 'Weight'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
         ];
@@ -225,8 +224,7 @@ class Cronjob extends \yii\db\ActiveRecord
 		 * the CronController is call by the server cron
 		 */
 		public function cron(){
-			$model = new Cronjob();
-			$cronjobs = $model->getAll();
+			$cronjobs = Cronjob::find()->orderBy('weight')->asArray()->all();
 			
 			// define date, and floor to 5 minutes
 			$now = date('Y-m-d H:i:00', floor(time() / (5 * 60)) * (5 * 60));
@@ -248,29 +246,36 @@ class Cronjob extends \yii\db\ActiveRecord
 					
 					// check if it has to run
 					if($run_at <= $now){
-					
+						// check if the job is correct executed
+						//$executed = false;
 						switch($cronjob['job']){
 							case 'taskdefined':
-								TaskDefined::execute($cronjob['job_id']);
+								$executed = TaskDefined::execute($cronjob['job_id']);
 						}
 						
-						// update run_at
-						$model = Cronjob::findOne($cronjob['id']);						
-						$model->run_at = $now;
-						if (!$model->save()){ 
-							print_r($model->errors);
-						}
+						// only update the cronjob if the job is executed correctly
+						//if($executed){
+							// update run_at
+							$model = Cronjob::findOne($cronjob['id']);						
+							$model->run_at = $now;
+							if (!$model->save()){ 
+								print_r($model->errors);
+							}
+						//}
 					}
 				}
 			}
 		}
 		
-		public function getAll(){
+		/*public static function getAll($where = [], $orderBy = 'id', $count = false){
 			// get all the actions
-			return Cronjob::find()->asArray()->all();
-		}
+			if($count){
+				return Cronjob::find()->where($where)->orderBy($orderBy)->count();
+			}
+			return Cronjob::find()->where($where)->orderBy($orderBy)->asArray()->all();
+		}*/
 		
-		public function getAllIdName(){
+		/*public static function getAllIdName(){
 			return ArrayHelper::map(Cronjob::find()->asArray()->all(), 'id', 'name');
-		}
+		}*/
 }

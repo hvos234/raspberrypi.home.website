@@ -99,6 +99,11 @@ class TaskDefined extends \yii\db\ActiveRecord
 				print_r($modelTask->errors);
 				return false;
 			}
+			
+			if(false !== strpos($modelTask->data, array('error:', 'err:'))){
+				return false;
+			}
+			
 			return true;
 		}
 		

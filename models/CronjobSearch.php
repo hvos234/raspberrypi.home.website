@@ -67,6 +67,7 @@ class CronjobSearch extends Cronjob
             'start_at' => $this->start_at,
             'end_at' => $this->end_at,
             'run_at' => $this->run_at,
+            'weight' => $this->weight,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
