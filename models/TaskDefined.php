@@ -100,9 +100,12 @@ class TaskDefined extends \yii\db\ActiveRecord
 				return false;
 			}
 			
-			if(false !== strpos($modelTask->data, array('error:', 'err:'))){
-				return false;
-			}
+			// check for a error in the data
+			foreach (['error:', 'err:'] as $needle){
+				if(false !== strpos($modelTask->data, $needle)){
+					return false;
+				}
+			}			
 			
 			return true;
 		}

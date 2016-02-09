@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 
     // Describe the results
     if ( timeout ) {
-        printf("Failed, response timed out.\n");
+        printf("err: response timed out.\n");
         exit(1);
         
     } else {

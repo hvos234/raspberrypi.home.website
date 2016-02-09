@@ -91,8 +91,6 @@ class CronjobController extends Controller
     public function actionCreate()
     {
         $model = new Cronjob();
-				
-				$modelTaskDefined = new TaskDefined();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -112,8 +110,6 @@ class CronjobController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-				
-				$modelTaskDefined= new TaskDefined();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             //return $this->redirect(['view', 'id' => $model->id]);

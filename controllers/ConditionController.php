@@ -88,24 +88,15 @@ class ConditionController extends Controller
 			$model = Condition::one($id);
 			$return = Condition::execute($id);
 			
-			Yii::$app->session->setFlash('message', $model->name . ' = ' . $return);
-
+			$session = Yii::$app->session;
+			if(true === $return){
+				Yii::$app->session->setFlash('success', Yii::t('app', 'Yes {name} !', ['name' => $model->name,]));
+			}elseif (false === $return) {
+				Yii::$app->session->setFlash('warning', Yii::t('app', 'No {name} !', ['name' => $model->name,]));
+			}else {
+				Yii::$app->session->setFlash('info', Yii::t('app', '{name} = {return} !', ['name' => $model->name, 'return' => $return,]));
+			}
 			
 			return $this->redirect(['condition/index']);
-			/*$allmodels = Condition::models();
-				
-				$provider = new ArrayDataProvider([
-						'allModels' => $allmodels,
-						'pagination' => [
-								'pageSize' => 666,
-						],
-						'sort' => [
-								'attributes' => ['id', 'name'],
-						],
-				]);
-				
-				return $this->render('index', [
-            'dataProvider' => $provider,
-        ]);*/
 		}
 }
