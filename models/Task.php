@@ -113,6 +113,10 @@ class Task extends \yii\db\ActiveRecord
 			// to grant execute right python
 			$command = 'sudo ' . $modelSetting->data . ' ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
 			exec(escapeshellcmd($command), $output, $return_var);
+			echo('$output: <pre>');
+			print_r($output);
+			echo('</pre>');
+			var_dump($return_var);
 			
 			$output = end($output);
 			if(0 == $return_var){ // 0 is success, the program exit with 0 (exit(0);) on success
@@ -123,6 +127,11 @@ class Task extends \yii\db\ActiveRecord
 
 				exec(escapeshellcmd($command), $output, $return_var);
 				$output = end($output);
+				
+				echo('$output2: <pre>');
+			print_r($output);
+			echo('</pre>');
+			var_dump($return_var);
 
 				return $output; // always return output it hold also the error info
 			}

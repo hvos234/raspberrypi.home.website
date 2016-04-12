@@ -8,7 +8,7 @@
 
 DHT dht(DHTPIN, DHTTYPE); // set dht
 
-char *getTemperature() {
+char home_temperature() {
     // reset error
     error.is_error = false;
     memset(&error.message, 0, sizeof(error.message)); // clear it
@@ -29,7 +29,7 @@ char *getTemperature() {
       error.is_error = true;
       strncpy( error.message, "Failed read DHT !", sizeof(error.message)-1 );
 
-      return (char *) "Failed read DHT !";
+      return (char) "Failed read DHT !";
     }
 
     error.is_error = false;
@@ -49,7 +49,7 @@ char *getTemperature() {
     return temperature;
 }
 
-char *getHumidity() {
+char *home_humidity() {
     // reset error
     error.is_error = false;
     memset(&error.message, 0, sizeof(error.message)); // clear it

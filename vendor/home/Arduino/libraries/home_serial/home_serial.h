@@ -61,7 +61,7 @@
  * This is easier than the above function, because you have to change every indivuduele character from ASII to char
  * @return 
  */
-char *getSerial(){
+char *home_serial_read(){
     // reset error
     error.is_error = false;
     memset(&error.message, 0, sizeof(error.message)); // clear it
