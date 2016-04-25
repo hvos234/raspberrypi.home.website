@@ -1,5 +1,3 @@
-#include <SPI.h>
-
 #ifndef NODEID
 #define NODEID      1
 #endif
@@ -17,7 +15,7 @@ bool promiscuousMode = false; //set to 'true' to sniff all packets on the same n
 
 RFM69 radio;
 
-void transceiver_setup() {
+void home_transceiver_setup() {
     radio.initialize(FREQUENCY,NODEID,NETWORKID);
     //radio.setHighPower(); //uncomment only for RFM69HW!
 
@@ -33,18 +31,19 @@ void transceiver_setup() {
     radio.promiscuous(promiscuousMode);
 }
 
-void transceiver_send (int from, int to, char *payload){
+void home_transceiver_send (int from, int to, char *payload){
     radio.send(to, (const void*)(&payload), sizeof(payload), false);
     delay(25); // make sure payload is send
 }
 
-bool transceiver_sendWithRetry (int from, int to, char *payload){
+bool home_transceiver_sendWithRetry (int from, int to, char *payload){
     bool successful;
     successful = radio.sendWithRetry(to, (const void*)(&payload), sizeof(payload), ACK_RETRIES, ACK_WAIT);
     return successful;
 }
 
-char *transceiver_receive() {
+char *home_transceiver_receive() {
+    char payload[30];
     memset(&payload, 0, sizeof(payload)); // clear it
     for (byte i = 0; i < radio.DATALEN; i++) {
       payload[i] = (char)radio.DATA[i];
@@ -57,10 +56,10 @@ char *transceiver_receive() {
     return payload;
 }
 
-int transceiver_sender_id () {
+int home_transceiver_sender_id () {
     return radio.SENDERID;
 }
 
-int transceiver_rssi(){
+int home_transceiver_rssi(){
     return radio.readRSSI();
 }
