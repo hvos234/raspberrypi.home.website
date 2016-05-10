@@ -21,8 +21,8 @@ char humdity[7];
 #define PROMISCUOUSMODE  false //set to 'true' to sniff all packets on the same network
 #define ACK         true
 #define ACK_RETRIES 2
-#define ACK_WAIT    40
-#define TIMEOUT     3000 // wait for respones
+#define ACK_WAIT    160 // default is 40 ms at 4800 bits/s, now 160 ms at 1200 bits/s
+#define TIMEOUT     6000 // wait for respones
 
 #include <RFM69.h>
 #include <SPI.h>
@@ -32,20 +32,20 @@ HomeRFM69 homerfm69;
 
 /*
 to 
-raspberry Pi  ->  master        fr:99;to:99;ts:99;ac:99
-master        ->  device        ts:99;ac:99
+raspberry Pi  ->  master        fr:99;to:99;ac:99
+master        ->  device        ac:99
 
 back
-device        ->  master        ts:99;ac:99;msg:t:99.99,h:99.99
-master        ->  raspberry Pi  ts:99;ac:99;msg:t:99.99,h:99.99 
+device        ->  master        ac:99;msg:t:99.99,h:99.99
+master        ->  raspberry Pi  ac:99;msg:t:99.99,h:99.99 
 */
 
-// max payload or data is ts:99;ac:99;msg:t:99.99,h:99.99 is 31 plus \0
+// max payload or data is ac:99;msg:t:99.99,h:99.99 is 31 plus \0
 char payload[33];
 char data[33];
 
-int task;
-int action;
+//int task;
+//int action;
 // max message is t:99.99,h:99.99 is 15 plus \0
 char message[17];
 
@@ -80,25 +80,30 @@ void loop() {
     if(!homerfm69.sscanfData(data)){
       //Serial.print("RFM69 Sscanf Error:  ");
       //Serial.println(homerfm69.getErrorId());
+      sprintf(message, "err:rfm69,%d", homerfm69.getErrorId());
     }else {
       
-      task = homerfm69.getTask();
-      action = homerfm69.getAction();
+      //task = homerfm69.getTask();
+      //action = homerfm69.getAction();
       
       /*Serial.print("Received Sscanf: ");
       Serial.print(" Task: ");
       Serial.print(task);
       Serial.print(" Action: ");
       Serial.println(action);*/
-    
-      if(ACTIONTEMP == action){
+      
+      if(ACTIONTEMP != homerfm69.getAction() && ACTIONHUM != homerfm69.getAction() && ACTIONTEMPHUM != homerfm69.getAction()){
+        sprintf(message, "err:%s", "no ac");
+      }
+      
+      if(ACTIONTEMP == homerfm69.getAction()){
         memset(&temperature, 0, sizeof(temperature)); // clear it
         strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
   
         if(homedht.getError()){
           //Serial.print("Temperature Error:  ");
           //Serial.println(homedht.getErrorId());
-          sprintf(message, "err:%d", homedht.getErrorId());
+          sprintf(message, "err:dht,%d", homedht.getErrorId());
               
         }else {
           //Serial.print("Temperature: ");
@@ -107,14 +112,14 @@ void loop() {
         }
       }
           
-      if(ACTIONHUM == action){
+      if(ACTIONHUM == homerfm69.getAction()){
         memset(&humdity, 0, sizeof(humdity)); // clear it
         strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
             
         if(homedht.getError()){
           //Serial.print("Humdity Error:  ");
           //Serial.println(homedht.getErrorId());
-          sprintf(message, "err:%d", homedht.getErrorId());
+          sprintf(message, "err:dht,%d", homedht.getErrorId());
         }else {
           //Serial.print("Humdity: ");
           //Serial.println(humdity);
@@ -122,14 +127,14 @@ void loop() {
         }
       }
           
-      if(ACTIONTEMPHUM == action){
+      if(ACTIONTEMPHUM == homerfm69.getAction()){
         memset(&temperature, 0, sizeof(temperature)); // clear it
         strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
   
         if(homedht.getError()){
           //Serial.print("Temperature Error:  ");
           //Serial.println(homedht.getErrorId());
-          sprintf(message, "err:%d", homedht.getErrorId());
+          sprintf(message, "err:dht,%d", homedht.getErrorId());
         }else {
           //Serial.print("Temperature: ");
           //Serial.println(temperature);
@@ -140,7 +145,7 @@ void loop() {
           if(homedht.getError()){
             //Serial.print("Humdity Error:  ");
             //Serial.println(homedht.getErrorId());
-            sprintf(message, "err:%d", homedht.getErrorId());
+            sprintf(message, "err:dht,%d", homedht.getErrorId());
           }else {
             //Serial.print("Humdity: ");
             //Serial.println(humdity);
@@ -148,21 +153,21 @@ void loop() {
           }
         }
       }
+    }
         
-      memset(&payload, 0, sizeof(payload)); // clear it
-      sprintf(payload, "ts:%d;ac:%d;msg:%s", task, action, message);
-      
-      Serial.print("Sending:  ");
-      Serial.println(payload);
-          
-      homerfm69.sendWithRetry(homerfm69.getSenderId(), payload, sizeof(payload));
-      if(homerfm69.getError()){
-        //Serial.print("RFM69, sendinging and receiving Error:  ");
-        //Serial.println(homerfm69.getErrorId());
-      }else {
-        //Serial.print("RFM69, sendinging and receiving received: ");
-        //Serial.println(data);
-      }
+    memset(&payload, 0, sizeof(payload)); // clear it
+    sprintf(payload, "ac:%d;msg:%s", homerfm69.getAction(), message);
+    
+    Serial.print("Sending:  ");
+    Serial.println(payload);
+        
+    homerfm69.sendWithRetry(homerfm69.getSenderId(), payload, sizeof(payload));
+    if(homerfm69.getError()){
+      Serial.print("RFM69, sendinging and receiving Error:  ");
+      Serial.println(homerfm69.getErrorId());
+    }else {
+      //Serial.print("RFM69, sendinging and receiving received: ");
+      //Serial.println(data);
     }
   }
 }
