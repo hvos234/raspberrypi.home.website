@@ -45,8 +45,8 @@ _home_serial = home_serial()
 _home_serial.connect()
 
 # mysql
-_home_mysql = home_mysql()
-_home_mysql.connect()
+#_home_mysql = home_mysql()
+#_home_mysql.connect()
 
 # run
 logger.info("Home Daemon Receiver Running !")
@@ -56,15 +56,12 @@ _home_serial.write("fr:" + fr + ";to:" + to + ";ac:" + ac + ";msg:" + msg)
 
 while True:
     string = _home_serial.read()
-    # split string (FR:2;TO:1;TS:0;AC:3;MSG:t:29.00,h:34.00)
-    array = string.split(';')
-    # if it is the return message
-    # master id is 1 and if the task is the same
-    if array[3] == "1" and array[5] == ts:
+    if(!string):
+        print "fr:" + fr + ";to:" + to + ";ac:" + ac + ";msg:err:timeout python"
+        _home_daemon.start()
+        sys.exit(1)
+    else:
         print string
         _home_daemon.start()
         sys.exit(0)
-    else:
-        # insert everything into the MySQL database
-        query = "INSERT INTO task(from_device_id, to_device_id, action_id, data, created_at) VALUES('%s', '%s', '%s', '%s', '%s')" % (array[1], array[3], array[7], array[9], time.strftime("%Y-%m-%d %H:%M:%S"))
-        _home_mysql.query(query)
+
