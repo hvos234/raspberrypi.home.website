@@ -29,16 +29,19 @@ class HomeDHT
         HomeDHT(uint8_t pin, uint8_t type, uint8_t count=6); // work 1.0
         
         boolean getError();
-        char *getErrorMessage();
+        //char *getErrorMessage();
+        int getErrorId();
+        void resetError();
         
         char *getTemperature(int unit);
         char *getHumdity();
     
     private:
-        DHT *dht; // work 1.0
+        DHT *_dht; // work 1.0
 
         boolean _error;
-        char _error_message[50];
+        //char _error_message[25];
+        int _error_id;
 };
 
 #endif

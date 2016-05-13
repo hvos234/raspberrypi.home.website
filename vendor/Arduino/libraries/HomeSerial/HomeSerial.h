@@ -19,29 +19,41 @@ class HomeSerial
         HomeSerial();
         
         boolean getError();
-        char *getErrorMessage();
+        //char *getErrorMessage();
+        int getErrorId();
+        void resetError();
         
-        char *readSerial();
+        void resetData();
+        bool readSerial();
         char *getSerial();
-        boolean sscanfSerial();
+        char *readSerialBytesUntil();
+        boolean sscanfSerial(char *);
         boolean writeSerial(char *);
         
         int getFrom();
         int getTo();
-        int getTask();
+        //int getTask();
         int getAction();
         char *getMessage();     
     
     private:
         boolean _error;
-        char _error_message[50];
+        //char _error_message[25];
+        int _error_id;
         
-        char _serial[50];
+        char _byte;
+        char _bytes[39];
+        
+        char _serial[39];
+        int _i = 0;
+        bool _start = false;
+        
         int _from;
         int _to;
-        int _task;
+        //int _task;
         int _action;
-        char _message[30];
+        // max message is t:99.99,h:99.99 is 15 plus \0
+        char _message[17];
 };
 
 #endif

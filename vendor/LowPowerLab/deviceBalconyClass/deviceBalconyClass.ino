@@ -21,8 +21,11 @@ char humdity[7];
 #define PROMISCUOUSMODE  false //set to 'true' to sniff all packets on the same network
 #define ACK         true
 #define ACK_RETRIES 2
-#define ACK_WAIT    160 // default is 40 ms at 4800 bits/s, now 160 ms at 1200 bits/s
-#define TIMEOUT     6000 // wait for respones
+#define ACK_WAIT    1000 // default is 40 ms at 4800 bits/s, now 160 ms at 1200 bits/s (160 is to low for a long distance, 510 for 10 meters)
+#define TIMEOUT     3000 // wait for respones
+
+byte sendSize=0;
+boolean requestACK = false;
 
 #include <RFM69.h>
 #include <SPI.h>
@@ -44,8 +47,6 @@ master        ->  raspberry Pi  ac:99;msg:t:99.99,h:99.99
 char payload[33];
 char data[33];
 
-//int task;
-//int action;
 // max message is t:99.99,h:99.99 is 15 plus \0
 char message[17];
 
@@ -68,29 +69,18 @@ void loop() {
   //process any receiving data
   if (homerfm69.receiveDone()){
     memset(&message, 0, sizeof(message)); // clear it
-
+    
     memset(&data, 0, sizeof(data)); // clear it
     strncpy( data, homerfm69.getData(), sizeof(data)-1 );
     
-    Serial.print("Received:  ");
+    homerfm69.sendACKRequested();
+    
+    Serial.print("Received: ");
     Serial.println(data);
     
-    homerfm69.sendACK();
-    
     if(!homerfm69.sscanfData(data)){
-      //Serial.print("RFM69 Sscanf Error:  ");
-      //Serial.println(homerfm69.getErrorId());
       sprintf(message, "err:rfm69,%d", homerfm69.getErrorId());
     }else {
-      
-      //task = homerfm69.getTask();
-      //action = homerfm69.getAction();
-      
-      /*Serial.print("Received Sscanf: ");
-      Serial.print(" Task: ");
-      Serial.print(task);
-      Serial.print(" Action: ");
-      Serial.println(action);*/
       
       if(ACTIONTEMP != homerfm69.getAction() && ACTIONHUM != homerfm69.getAction() && ACTIONTEMPHUM != homerfm69.getAction()){
         sprintf(message, "err:%s", "no ac");
@@ -101,13 +91,9 @@ void loop() {
         strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
   
         if(homedht.getError()){
-          //Serial.print("Temperature Error:  ");
-          //Serial.println(homedht.getErrorId());
           sprintf(message, "err:dht,%d", homedht.getErrorId());
               
         }else {
-          //Serial.print("Temperature: ");
-          //Serial.println(temperature);
           sprintf(message, "t:%s", temperature);
         }
       }
@@ -117,12 +103,8 @@ void loop() {
         strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
             
         if(homedht.getError()){
-          //Serial.print("Humdity Error:  ");
-          //Serial.println(homedht.getErrorId());
           sprintf(message, "err:dht,%d", homedht.getErrorId());
         }else {
-          //Serial.print("Humdity: ");
-          //Serial.println(humdity);
           sprintf(message, "h:%s", humdity);
         }
       }
@@ -132,23 +114,16 @@ void loop() {
         strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
   
         if(homedht.getError()){
-          //Serial.print("Temperature Error:  ");
-          //Serial.println(homedht.getErrorId());
           sprintf(message, "err:dht,%d", homedht.getErrorId());
+          
         }else {
-          //Serial.print("Temperature: ");
-          //Serial.println(temperature);
-            
           memset(&humdity, 0, sizeof(humdity)); // clear it
           strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
               
           if(homedht.getError()){
-            //Serial.print("Humdity Error:  ");
-            //Serial.println(homedht.getErrorId());
             sprintf(message, "err:dht,%d", homedht.getErrorId());
+            
           }else {
-            //Serial.print("Humdity: ");
-            //Serial.println(humdity);
             sprintf(message, "t:%s,h:%s", temperature, humdity);
           }
         }
@@ -160,14 +135,13 @@ void loop() {
     
     Serial.print("Sending:  ");
     Serial.println(payload);
-        
-    homerfm69.sendWithRetry(homerfm69.getSenderId(), payload, sizeof(payload));
+    
+    bool success;
+    success = homerfm69.sendWithRetry(homerfm69.getSenderId(), payload, sizeof(payload));
+    
     if(homerfm69.getError()){
-      Serial.print("RFM69, sendinging and receiving Error:  ");
+      Serial.print("err:rfm69,");
       Serial.println(homerfm69.getErrorId());
-    }else {
-      //Serial.print("RFM69, sendinging and receiving received: ");
-      //Serial.println(data);
     }
   }
 }

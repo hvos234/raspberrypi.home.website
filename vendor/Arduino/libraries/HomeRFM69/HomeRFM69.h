@@ -14,40 +14,60 @@
 #endif
 
 #include "../RFM69/RFM69.h"
+#include "SPI.h"
 
 class HomeRFM69 
 {
     public:
         HomeRFM69();
-        bool initialize(uint8_t freqBand, uint8_t nodeID, uint8_t networkID, const char* key = "sampleEncryptKey", bool promiscuousMode = false, uint8_t _ack = true, uint8_t _ack_retries = 2, uint8_t _ack_wait = 30, uint8_t _timeout = 6000);
+        // _ack_wait default is 40 ms at 4800 bits/s, now 160 ms at 1200 bits/s
+        bool initialize(uint8_t freqBand, int nodeID, int networkID, const char* key = "sampleEncryptKey", bool promiscuousMode = false, bool _ack = true, uint8_t _ack_retries = 2, unsigned long _ack_wait = 255, unsigned long _timeout = 3000);
         
         boolean getError();
-        char *getErrorMessage();
+        //char *getErrorMessage();
+        int getErrorId();
         void resetError();
         
-        void send(int to, char *payload);
-        bool sendWithAck(int to, char *payload);
-        bool sendWithRetry(int to, char *payload);
+        
+        void send(int to, char *payload, int size);
+        bool sendWithAck(int to, char *payload, int size);
+        bool sendWithRetry(int to, char *payload, int size);
+        void resetData();
         char *receive();
         char *receiveWithTimeOut();
         char *getData();
-        
-        char *sendAndreceiveWithTimeOut(int to, char *payload);
-        char *sendWithRetryAndreceiveWithTimeOut(int to, char *payload);
+        bool receiveDone();
+        bool ACKRequested();
+        void sendACK();
+        bool sendACKRequested();
         
         int getSenderId();
-        int getRssi();    
+        int getRssi();
+        
+        char *sendAndreceiveWithTimeOut(int to, char *payload, int size);
+        char *sendWithRetryAndreceiveWithTimeOut(int to, char *payload, int size);
+        
+        boolean sscanfData(char *);
+        //int getTask();
+        int getAction();
+        char *getMessage();
     
     private:
-        RFM69 *radio;
+        RFM69 *_radio;
 
         boolean _error;
-        char _error_message[50];
+        //char _error_message[25];
+        int _error_id;
         
-        bool ack;
-        uint8_t ack_retries;
-        uint8_t ack_wait;
-        unsigned long timeout;
+        bool _ack;
+        uint8_t _ack_retries;
+        unsigned long _ack_wait;
+        unsigned long _timeout;
+        
+        //int _task;
+        int _action;
+        // max message is t:99.99,h:99.99 is 15 plus \0
+        char _message[17];
 };
 
 #endif
