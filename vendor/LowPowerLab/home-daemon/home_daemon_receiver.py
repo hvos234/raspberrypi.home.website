@@ -2,89 +2,43 @@
 # -*- coding: utf-8 -*-
 
 # logging
-from home_daemon_logging import logger
-from time import strftime
-logger.info("Home Daemon Receiver Starting !")
+#from home_daemon_logging import logger
+#logger.info("Home Daemon Receiver Starting !")
+print "Home Daemon Receiver Starting !"
 
 # imports
-import sys, serial, MySQLdb, signal
+import sys, signal, time, subprocess, os
+from home_serial import home_serial
+#from home_mysql import home_mysql
 
 # declare variables
-con = None
-cur = None
 ser = None
 
 string = ""
 array = ""
 query = ""
 
-# functions
-def mysql_connect():
-    # create a MySQL connection, and catch any errors
-    try:
-        global con
-        con = MySQLdb.connect('localhost', 'home', 'halloha234', 'home');
-        return con;
-    except MySQLdb.Error, e:
-        try:
-            logger.error("Failt creating MySQL connection, error: at %s, %s" % (e.args[0],e.args[1]))
-        except IndexError:
-            logger.error("Failt creating MySQL connection, error: at %s" % str(e))
-        sys.exit(1)
+# serial
+_home_serial = home_serial()
+_home_serial.connect(None)
+time.sleep(1) # wait to device is started up
 
-con = mysql_connect()
+# mysql
+#_home_mysql = home_mysql()
+#_home_mysql.connect()
 
-def mysql_cursor():
-    global con
-    if not con.open:
-        con = mysql_connect()
-    with con:
-        cur = con.cursor()
-        return cur
-
-def mysql_cursor_close():
-    global cur
-    cur.close()
-
-def serial_connect():
-    try:
-        global ser
-        ser = serial.Serial('/dev/ttyAMA0', 9600, timeout=1)
-        ser.open()
-        return ser
-    except serial.SerialException as e:
-        logger.error("Failt creating / opening Serial connection, error: at %s" % str(e))
-        global con
-        con.close()
-        sys.exit(1)
-
-ser = serial_connect()
-
+# cleanup
 def cleanup():
-    # close Serial
-    global ser
-    try:
-        ser.close()
-    except serial.SerialException as e:
-        logger.error("Failt closing Serial connection, error: at %s" % str(e))
-    
-    # close MySQL connection
-    global con
-    try:
-        con.close
-    except MySQLdb.Error, e:
-        logger.error("Failt closing MySQL connection, error: at %s, %s" % (e.args[0],e.args[1]))
-        try:
-            logger.error("Failt closing MySQL connection, error: at %s, %s" % (e.args[0],e.args[1]))
-        except IndexError:
-            logger.error("Failt closing MySQL connection, error: at %s" % str(e))
-    
-    # exit system
+    #global _home_mysql
+    #del _home_mysql
+    global _home_serial
+    del _home_serial
     sys.exit(0)
 
 # SIGTERM handler
 def signal_term_handler(signal, frame):
-    logger.info("Home Daemon Receiver got SIGTERM !")
+    #logger.info("Home Daemon Receiver got SIGTERM !")
+    print "Home Daemon Receiver got SIGTERM !"
     cleanup()
     sys.exit(0)
 
@@ -92,37 +46,21 @@ signal.signal(signal.SIGTERM, signal_term_handler)
 
 # SIGINT handler
 def signal_int_handler(signal, frame):
-    logger.info("Home Daemon Receiver got SIGINT !")
+    #logger.info("Home Daemon Receiver got SIGINT !")
+    print "Home Daemon Receiver got SIGINT !"
     cleanup()
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_int_handler)
 
 # run
-logger.info("Home Daemon Receiver Running !")
+#logger.info("Home Daemon Receiver Running !")
+print "Home Daemon Receiver Running !"
 
 while True:
+    string = _home_serial.read();
     
-    # catch one character rom the serial
-    for character in ser.read():
+    #if "" != string:
+    print "/usr/bin/php /var/www/html/home/yii receiver \"" + string + "\""    
+    os.system ("/usr/bin/php /var/www/html/home/yii receiver " + repr(string)) # passes the command and arguments to your system's shell. This is nice because you can actually run multiple commands at once in this manner and set up pipes and input/output redirection. 
         
-        # check for the first character ^
-        if character == "^":
-            string = ""
-        
-        # check for the last character $
-        elif character == "$":
-            # split string (FR:2:TO:1:TS:0:AC:3:MSG:29.00;34.00)
-            array = string.split(':')
-            
-            # insert everything into the MySQL database
-            query = "INSERT INTO task(from_device_id, to_device_id, action_id, data, created_at) VALUES('%s', '%s', '%s', '%s', '%s')" % (array[1], array[3], array[7], array[9], strftime("%Y-%m-%d %H:%M:%S"))
-            cur = mysql_cursor()
-            cur.execute(query)
-            con.commit() # Make sure data is committed to the database
-            mysql_cursor_close()
-        
-        # if it is not the first or last character,
-        # add it into string
-        else:
-            string += str(character)

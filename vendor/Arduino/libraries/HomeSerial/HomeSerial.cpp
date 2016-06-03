@@ -41,20 +41,24 @@ void HomeSerial::resetData(){
 }
 
 bool HomeSerial::readSerial(){
-    _byte = Serial.read();
-    if('^' == _byte){
+    _char = Serial.read();
+    
+    if('^' == _char){
+        // empty variables
         memset(&_serial, 0, sizeof(_serial)); // clear it
-        _i = 0;
+        _count = 0;
         _start = true;
         
-    }else if ('$' == _byte){
-        _i = 0;
+    }else if ('$' == _char){
+        _serial[_count] = '\0'; // needed or the program will hang;
+        _count = 0;
         _start = false;
         return true;
         
     }else if(_start){
-        _serial[_i] = _byte;
-        _i++;
+        _serial[_count] = _char;
+        _count++;
+        _serial[_count] = '\0';
     }
     
     return false;
@@ -68,41 +72,37 @@ char *HomeSerial::readSerialBytesUntil(){
     this->resetError();
     this->resetData();
     
-    // declare variables
-    int num_bytes = 0;
-    // max bytes or serial is fr:99;to:99;ac:99;msg:t:99.99,h:99.99 is 37 plus \0
-    //char bytes[39];
-    
     // empty variables
+    _num_bytes = 0;
     memset(&_bytes, 0, sizeof(_bytes)); // clear it
-    //bytes[0] = '\0';
     
-    num_bytes = Serial.readBytesUntil('\0', _bytes, sizeof(_bytes)-1);
+    _num_bytes = Serial.readBytesUntil('\0', _bytes, sizeof(_bytes));
     
+    // reset error
     _error = true;
     //strncpy( _error_message, "Serial must start with ^ and end with $ !", sizeof(_error_message)-1 );    
     _error_id = 11;
     
-    int count = 0;
-    // max bytes or serial is fr:99;to:99;ac:99;msg:t:99.99,h:99.99 is 37 plus \0
-    //char serial[39];
+    // empty variables
+    _count = 0;
+    _start = false;
     memset(&_serial, 0, sizeof(_serial)); // clear it
     
-    boolean start = false;
-    for(int i = 0; i <= num_bytes; i++){        
-        if('^' == _bytes[i]){
-            start = true;
-            count = 0;
+    for(_i = 0; _i <= _num_bytes; _i++){        
+        if('^' == _bytes[_i]){
+            _start = true;
+            _count = 0;
             
-        }else if(start && '$' == _bytes[i]){
-           start = false;
-           _serial[count] = '\0';
+        }else if(_start && '$' == _bytes[_i]){
+           _start = false;
+           _serial[_count] = '\0';  // needed or the program will hang;
+           _count = 0;
            
            this->resetError();
            
-       }else if(start){
-            _serial[count] = _bytes[i];
-            count++;
+       }else if(_start){
+            _serial[_count] = _bytes[_i];
+            _count++;
         }
     }
     
@@ -143,18 +143,6 @@ boolean HomeSerial::sscanfSerial(char *serial){
         _error_id = 34;
         return false;
     }
-    
-    /*Serial.print("Serial sscanf: ");
-    Serial.print("From: ");
-    Serial.print(_from);
-    Serial.print(" To: ");
-    Serial.print(_to);
-    Serial.print(" Task: ");
-    Serial.print(_task);
-    Serial.print(" Action: ");
-    Serial.print(_action);
-    Serial.print(" Message: ");
-    Serial.println(_message);*/
     
     return true;
 }

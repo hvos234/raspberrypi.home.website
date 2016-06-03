@@ -59,10 +59,15 @@ class HomeRFM69
         //char _error_message[25];
         int _error_id;
         
+        bool _successful;
+        
         bool _ack;
         uint8_t _ack_retries;
         unsigned long _ack_wait;
         unsigned long _timeout;
+        
+        char _data[33]; // max payload or data is ts:99;ac:99;msg:t:99.99,h:99.99 is 31 plus \0
+        byte _byte_i;
         
         //int _task;
         int _action;

@@ -17,8 +17,8 @@ HomeRFM69::HomeRFM69(){
 }
 
 bool HomeRFM69::initialize(uint8_t freqBand, int nodeID, int networkID, const char* key, bool promiscuousMode, bool ack, uint8_t ack_retries, unsigned long ack_wait, unsigned long timeout){
-    bool successful;
-    successful = _radio->initialize(freqBand, nodeID, networkID);
+    _successful = false;
+    _successful = _radio->initialize(freqBand, nodeID, networkID);
     //radio->setHighPower(); //uncomment only for RFM69HW!
 
     // this change the bitrate from 4800 to 1200, and Frequenty level to max
@@ -38,7 +38,7 @@ bool HomeRFM69::initialize(uint8_t freqBand, int nodeID, int networkID, const ch
     _ack_wait = ack_wait;
     _timeout = timeout;
     
-    return successful;
+    return _successful;
 }
 
 boolean HomeRFM69::getError(){
@@ -125,13 +125,12 @@ char *HomeRFM69::receive(){
     this->resetError();
     this->resetData();
     
-    // max payload or data is ts:99;ac:99;msg:t:99.99,h:99.99 is 31 plus \0
-    char data[33];
-    memset(&data, 0, sizeof(data)); // clear it
+    // empty varibales
+    memset(&_data, 0, sizeof(_data));
     
     if (_radio->receiveDone()){
         _error = false;
-        sprintf(data, "%s", this->getData());
+        sprintf(_data, "%s", this->getData());
         
         this->sendACKRequested();
         
@@ -139,10 +138,10 @@ char *HomeRFM69::receive(){
         _error = true;
         //strncpy( _error_message, "Error receive(), Nothing received !", sizeof(_error_message)-1 );
         _error_id = 51;
-        return data;
+        return _data;
     }
     
-    return data;
+    return _data;
 }
 
 char *HomeRFM69::receiveWithTimeOut(){
@@ -160,39 +159,37 @@ char *HomeRFM69::receiveWithTimeOut(){
       }
     }
     
-    // max payload or data is ts:99;ac:99;msg:t:99.99,h:99.99 is 31 plus \0
-    char data[33];
-    memset(&data, 0, sizeof(data)); // clear it
+    // empty varibales
+    memset(&_data, 0, sizeof(_data));
     
     if (!successful) {
-        sprintf(data, "%s", "Timeout !");
+        sprintf(_data, "%s", "Timeout !");
         _error = true;
         //strncpy( _error_message, "Error receiveWithTimeOut(), Timeout !", sizeof(_error_message)-1 );
         _error_id = 61;
         
     }else{
         _error = false;
-        sprintf(data, "%s", this->getData());
+        sprintf(_data, "%s", this->getData());
         
         this->sendACKRequested();
     }
     
-    return data;
+    return _data;
 }
 
 char *HomeRFM69::getData(){
     this->resetError();
     this->resetData();
     
-    // max payload or data is ac:99;msg:t:99.99,h:99.99 is 31 plus \0
-    char data[33];
-    memset(&data, 0, sizeof(data)); // clear it
+    // empty varibales
+    memset(&_data, 0, sizeof(_data)); // clear it
     
-    for (byte i = 0; i < _radio->DATALEN; i++) {
-      data[i] = (char)_radio->DATA[i];
+    for (_byte_i = 0; _byte_i < _radio->DATALEN; _byte_i++) {
+      _data[_byte_i] = (char)_radio->DATA[_byte_i];
     }
     
-    return data;
+    return _data;
 }
 
 bool HomeRFM69::receiveDone(){
@@ -227,47 +224,47 @@ int HomeRFM69::getRssi(){
 char *HomeRFM69::sendAndreceiveWithTimeOut(int to, char *payload, int size){
     this->resetError();
     
-    char data[33];
-    memset(&data, 0, sizeof(data)); // clear it
+    // empty varibales
+    memset(&_data, 0, sizeof(_data));
     
     this->send(to, payload, size);
     if(this->getError()){
-        //sprintf(data, "Error sendAndreceiveWithTimeOut(): %s", this->getErrorMessage());
-        sprintf(data, "err:111,%d", this->getErrorId());
-        return data;
+        //sprintf(_data, "Error sendAndreceiveWithTimeOut(): %s", this->getErrorMessage());
+        sprintf(_data, "err:111,%d", this->getErrorId());
+        return _data;
     }
     
-    sprintf(data, "%s", this->receiveWithTimeOut());
+    sprintf(_data, "%s", this->receiveWithTimeOut());
     if(this->getError()){
-        memset(&data, 0, sizeof(data)); // clear it
-        //sprintf(data, "Error sendAndreceiveWithTimeOut(): %s", this->getErrorMessage());
-        sprintf(data, "err:112,%d", this->getErrorId());
+        memset(&_data, 0, sizeof(_data)); // clear it
+        //sprintf(_data, "Error sendAndreceiveWithTimeOut(): %s", this->getErrorMessage());
+        sprintf(_data, "err:112,%d", this->getErrorId());
     }
     
-    return data;
+    return _data;
 }
     
 char *HomeRFM69::sendWithRetryAndreceiveWithTimeOut(int to, char *payload, int size){
     this->resetError();
     
-    char data[33];
-    memset(&data, 0, sizeof(data)); // clear it
+    // empty varibales
+    memset(&_data, 0, sizeof(_data));
     
     this->sendWithRetry(to, payload, size);
     if(this->getError()){
-        //sprintf(data, "Error sendWithRetryAndreceiveWithTimeOut(): %s", this->getErrorMessage());
-        sprintf(data, "err:121,%d", this->getErrorId());
-        return data;
+        //sprintf(_data, "Error sendWithRetryAndreceiveWithTimeOut(): %s", this->getErrorMessage());
+        sprintf(_data, "err:121,%d", this->getErrorId());
+        return _data;
     }
     
-    sprintf(data, "%s", this->receiveWithTimeOut());
+    sprintf(_data, "%s", this->receiveWithTimeOut());
     if(this->getError()){
-        memset(&data, 0, sizeof(data)); // clear it
-        //sprintf(data, "Error sendWithRetryAndreceiveWithTimeOut(): %s", this->getErrorMessage());
-        sprintf(data, "err:122,%d", this->getErrorId());
+        memset(&_data, 0, sizeof(_data)); // clear it
+        //sprintf(_data, "Error sendWithRetryAndreceiveWithTimeOut(): %s", this->getErrorMessage());
+        sprintf(_data, "err:122,%d", this->getErrorId());
     }
     
-    return data;
+    return _data;
 }
 
 boolean HomeRFM69::sscanfData(char *data){

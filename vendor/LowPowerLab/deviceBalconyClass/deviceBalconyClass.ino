@@ -15,7 +15,7 @@ char humdity[7];
 
 // HomeRFM69
 #define FREQUENCY   RF69_433MHZ //Match this with the version of your Moteino! (others: RF69_433MHZ, RF69_868MHZ)
-#define NODEID      3
+#define NODEID      4
 #define NETWORKID   100
 #define KEY         "sampleEncryptKey" //has to be same 16 characters/bytes on all nodes, not more not less!
 #define PROMISCUOUSMODE  false //set to 'true' to sniff all packets on the same network
@@ -58,9 +58,19 @@ char message[17];
 #define ACTIONHUM 2 // send humidity
 #define ACTIONTEMPHUM 3 // send temperature and humidity
 
+long transPeriod = random((1000 * 60 * 60), ((1000 * 60 * 60) + (1000 * 60 * 5))); //transmit a packet to gateway so often (in ms)
+unsigned long currentPeriod = 0;
+unsigned long previousPeriod = 0;
+
 void setup() {
   Serial.begin(SERIAL_BAUD);
   homerfm69.initialize(FREQUENCY, NODEID, NETWORKID, KEY, PROMISCUOUSMODE, ACK, ACK_RETRIES, ACK_WAIT, TIMEOUT);
+  
+  // if analog input pin 0 is unconnected, random analog
+  // noise will cause the call to randomSeed() to generate
+  // different seed numbers each time the sketch runs.
+  // randomSeed() will then shuffle the random function.
+  randomSeed(analogRead(0));
   
   Serial.println("Setup Finished !");
 }
@@ -137,7 +147,45 @@ void loop() {
     Serial.println(payload);
     
     bool success;
-    success = homerfm69.sendWithRetry(homerfm69.getSenderId(), payload, sizeof(payload));
+    success = homerfm69.sendWithRetry(homerfm69.getSenderId(), payload, strlen(payload)+2);
+    
+    if(homerfm69.getError()){
+      Serial.print("err:rfm69,");
+      Serial.println(homerfm69.getErrorId());
+    }
+  }
+  
+  unsigned long currentPeriod = millis();
+  if (currentPeriod - previousPeriod >= transPeriod || currentPeriod <= previousPeriod) {
+    transPeriod = random((1000 * 60 * 60), ((1000 * 60 * 60) + (1000 * 60 * 5)));
+    previousPeriod += transPeriod; // this is for a more consistend frequentie instate of previousPeriod = currentPeriod;
+    
+    memset(&temperature, 0, sizeof(temperature)); // clear it
+    strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
+
+    if(homedht.getError()){
+      sprintf(message, "err:dht,%d", homedht.getErrorId());
+      
+    }else {
+      memset(&humdity, 0, sizeof(humdity)); // clear it
+      strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
+          
+      if(homedht.getError()){
+        sprintf(message, "err:dht,%d", homedht.getErrorId());
+        
+      }else {
+        sprintf(message, "t:%s,h:%s", temperature, humdity);
+      }
+    }
+    
+    memset(&payload, 0, sizeof(payload)); // clear it
+    sprintf(payload, "ac:%d;msg:%s", 3, message);
+    
+    Serial.print("Sending Period:  ");
+    Serial.println(payload);
+    
+    bool success;
+    success = homerfm69.sendWithRetry(1, payload, strlen(payload)+2);
     
     if(homerfm69.getError()){
       Serial.print("err:rfm69,");

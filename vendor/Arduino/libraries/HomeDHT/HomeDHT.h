@@ -42,6 +42,13 @@ class HomeDHT
         boolean _error;
         //char _error_message[25];
         int _error_id;
+        
+        char _temperature[7]; //2 int, 2 dec, 1 point, and \0
+        float _t = 0;
+        float _tf = 0;
+        
+        char _humidity[7]; //2 int, 2 dec, 1 point, and \0
+        float _h = 0;
 };
 
 #endif

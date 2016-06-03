@@ -74,6 +74,7 @@ void setup() {
 void loop() {
   //process any serial input
   if (Serial.available() > 0) {
+    
     if(homeserial.readSerial()){
       
       memset(&serial, 0, sizeof(serial)); // clear it
@@ -161,7 +162,7 @@ void loop() {
         Serial.println(payload);
         
         memset(&data, 0, sizeof(data)); // clear it
-        strncpy( data, homerfm69.sendWithRetryAndreceiveWithTimeOut(homeserial.getTo(), payload, sizeof(payload)), sizeof(data)-1 );
+        strncpy( data, homerfm69.sendWithRetryAndreceiveWithTimeOut(homeserial.getTo(), payload, strlen(payload)+2), sizeof(data)-1 );
               
         if(homerfm69.getError()){
           sprintf(message, "err:rfm69,%d", homerfm69.getErrorId());
@@ -180,13 +181,13 @@ void loop() {
         }
         
         memset(&serial, 0, sizeof(serial)); // clear it
-        sprintf(serial, "fr:%d;to:%d;ac:%d;msg:%s", homeserial.getTo(), homeserial.getFrom(), homerfm69.getAction(), message);
+        sprintf(serial, "fr:%d;to:%d;ac:%d;msg:%s", homeserial.getFrom(), homeserial.getTo(), homerfm69.getAction(), message);
         
         Serial.print("Serial write: ");
         Serial.println(serial);
         homeserial.writeSerial(serial);
         
-        delay(TIMEOUT); // or else it can occure that it will receive the message agian
+        //delay(TIMEOUT); // or else it can occure that it will receive the message agian
       }
     }
   }

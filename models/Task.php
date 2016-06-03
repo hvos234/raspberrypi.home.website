@@ -91,7 +91,9 @@ class Task extends \yii\db\ActiveRecord
 		
 		public function beforeSave($insert){
 			if($insert){ // if true it is inserted if false it is updated
-				$this->data = Task::execute($this->from_device_id, $this->to_device_id, $this->action_id);
+				if(empty($this->data)){
+					$this->data = Task::execute($this->from_device_id, $this->to_device_id, $this->action_id);
+				}
 			}
 			
 			return parent::beforeSave($insert);
@@ -105,37 +107,86 @@ class Task extends \yii\db\ActiveRecord
 		 * @param type $action_id
 		 * @return type
 		 */
-		public static function execute($from_device_id, $to_device_id, $action_id){
+		public static function execute($from_device_id, $to_device_id, $action_id, $retry = 3){			
+			return Task::transmitter($from_device_id, $to_device_id, $action_id, $retry);
+		}
+		
+		public static function transmitter($from_device_id, $to_device_id, $action_id, $retry = 3){
 			$modelSetting = Setting::find()->select('data')->where(['name' => 'path_script_task'])->one();
 			
-			// sudo visudo
-			// add www-data ALL=(ALL) NOPASSWD: ALL
-			// to grant execute right python
-			$command = 'sudo ' . $modelSetting->data . ' ' . $from_device_id . ' ' . $to_device_id . ' ' . $action_id;
-			exec(escapeshellcmd($command), $output, $return_var);
-			echo('$output: <pre>');
-			print_r($output);
-			echo('</pre>');
-			var_dump($return_var);
-			
-			$output = end($output);
-			if(0 == $return_var){ // 0 is success, the program exit with 0 (exit(0);) on success
-				return $output;
-				
-			}else { // try again
-				sleep(1);
-
+			for($try = 1; $try <= $retry; $try++){
+				// sudo visudo
+				// add www-data ALL=(ALL) NOPASSWD: ALL
+				// to grant execute right python
+				$command = 'sudo ' . $modelSetting->data . ' --fr ' . $from_device_id . ' --to ' . $to_device_id . ' --ac ' . $action_id;
 				exec(escapeshellcmd($command), $output, $return_var);
-				$output = end($output);
-				
-				echo('$output2: <pre>');
-			print_r($output);
-			echo('</pre>');
-			var_dump($return_var);
+				//echo('<pre>');
 
-				return $output; // always return output it hold also the error info
+				$return = Task::sscanfOutput($output);
+				if(!$return){
+					return 'err:failed execute';
+				}
+
+				// from and to are exchanged
+				$from = 0;
+				$to = 0;
+				$action = 0;
+				$message = '';
+				list($from, $to, $action, $message) = $return;
+
+				if($from == $from_device_id and $to == $to_device_id and $action == $action_id){
+					return $message;
+				}else {
+					Task::receiver($output);
+					$try--;
+				}
+				
+				if($try+1 >= $retry){
+					return 'err:failed trying';
+				}
 			}
-			return 'err:execute failed';
+			
+			return 'err:failed return';
+		}
+				
+		public static function receiver($output){
+			$return = Task::sscanfOutput($output);
+			
+			if($return){
+				$from = 0;
+				$to = 0;
+				$action = 0;
+				$message = '';
+				list($from, $to, $action, $message) = $return;
+				
+				$modelTask = new Task();			
+				$modelTask->from_device_id = $from;
+				$modelTask->to_device_id = $to;
+				$modelTask->action_id = $action;
+				$modelTask->data = $message;
+
+				if (!$modelTask->insert()){ 
+					print_r($modelTask->errors);
+					return 0;
+				}
+				return 1;
+			}
+			return 0;
+		}
+		
+		public static function sscanfOutput($output){
+			foreach($output as $line){
+				$from = 0;
+				$to = 0;
+				$action = 0;
+				$message = '';
+				sscanf($line, '^fr:%d;to:%d;ac:%d;msg:%[^$]s', $from, $to, $action, $message);
+				
+				if(!empty($from) and !empty($to) and !empty($action) and !empty($message)){
+					return array($from, $to, $action, $message);
+				}
+			}
+			return false;
 		}
 		
 		public function getTaskBetweenDate($between, $from_device_id = '', $to_device_id = '', $action_id = ''){

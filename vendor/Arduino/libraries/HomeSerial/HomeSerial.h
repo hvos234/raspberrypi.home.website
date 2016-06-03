@@ -41,12 +41,13 @@ class HomeSerial
         //char _error_message[25];
         int _error_id;
         
-        char _byte;
-        char _bytes[39];
-        
-        char _serial[39];
+        char _char; 
+        char _bytes[39]; // max bytes or serial is fr:99;to:99;ac:99;msg:t:99.99,h:99.99 is 37 plus \0
+        char _serial[39]; // max bytes or serial is fr:99;to:99;ac:99;msg:t:99.99,h:99.99 is 37 plus \0
+        int _num_bytes = 0;
+        int _count = 0;
         int _i = 0;
-        bool _start = false;
+        bool _start = false;        
         
         int _from;
         int _to;

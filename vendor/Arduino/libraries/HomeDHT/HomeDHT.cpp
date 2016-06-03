@@ -45,19 +45,15 @@ void HomeDHT::resetError(){
 char *HomeDHT::getTemperature(int unit){
     this->resetError();
     
-    // declare variables
-    char temperature[7]; //2 int, 2 dec, 1 point, and \0
-    float t = 0;
-    float tf = 0;
-    
     // empty variables
-    memset(&temperature, 0, sizeof(temperature)); // clear it
+    memset(&_temperature, 0, sizeof(_temperature));
+    _t = 0;
+    _tf = 0;
     
-    t = _dht->readTemperature(); // work 1.0
-    tf = t * 1.8 +32;  //Convert from C to F
+    _t = _dht->readTemperature(); // work 1.0
+    _tf = _t * 1.8 +32;  //Convert from C to F
     
-    if (isnan(t)) {
-      //Serial.println("Error getTemperature(), Failed read DHT !");
+    if (isnan(_t)) {
       _error = true;
       //strncpy( _error_message, "Failed read DHT !", sizeof(_error_message)-1 );
       _error_id = 11;
@@ -66,36 +62,27 @@ char *HomeDHT::getTemperature(int unit){
     }
 
     _error = false;
-
-    //Serial.print("Temperature: ");
+    
     if (0 == unit){  //choose the right unit F or C
-      //Serial.print(tf);
-      //Serial.println(" *F");
       //Floats don't work in sprintf statements on Arduino without pain, so convert to string separately.
-      dtostrf(tf, 2, 2, temperature); // dtostrf convert it to 2 before decimal and 2 after decimal
+      dtostrf(_tf, 2, 2, _temperature); // dtostrf convert it to 2 before decimal and 2 after decimal
     }else {
-      //Serial.print(t);
-      //Serial.println(" *C");
-      dtostrf(t, 2, 2, temperature); // dtostrf convert it to 2 before decimal and 2 after decimal
+      dtostrf(_t, 2, 2, _temperature); // dtostrf convert it to 2 before decimal and 2 after decimal
     }
 
-    return temperature;
+    return _temperature;
 }
 
 char *HomeDHT::getHumdity() {
     this->resetError();
     
-    // declare variables
-    char humidity[7]; //2 int, 2 dec, 1 point, and \0
-    float h = 0;
-
     // empty variables
-    memset(&humidity, 0, sizeof(humidity)); // clear it
+    memset(&_humidity, 0, sizeof(_humidity));
+    _h = 0;
 
-    h = _dht->readHumidity(); // work 1.0
+    _h = _dht->readHumidity(); // work 1.0
     
-    if (isnan(h)) {
-      //Serial.println("Error getHumidity(), Failed read DHT !");
+    if (isnan(_h)) {
       _error = true;
       //strncpy( _error_message, "Failed read DHT !", sizeof(_error_message)-1 );
       _error_id = 21;
@@ -105,12 +92,8 @@ char *HomeDHT::getHumdity() {
 
     _error = false;
 
-    //Serial.print("Humidity: "); 
-    //Serial.print(h);
-    //Serial.println(" %\t");
-
     //Floats don't work in sprintf statements on Arduino without pain, so convert to string separately.
-    dtostrf(h, 2, 2, humidity); // dtostrf convert it to 2 before decimal and 2 after decimal
+    dtostrf(_h, 2, 2, _humidity); // dtostrf convert it to 2 before decimal and 2 after decimal
 
-    return humidity;
+    return _humidity;
 }

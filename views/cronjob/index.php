@@ -38,7 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'job',
             // 'job_id',
             'start_at',
-            // 'end_at',
+						'end_at',
             'run_at',
 						'weight',
             //'created_at',

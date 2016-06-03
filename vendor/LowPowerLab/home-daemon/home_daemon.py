@@ -13,7 +13,7 @@ class home_daemon:
     def start(self):
         # check if it is stopped, before
         if not self.status():
-            subprocess.call(['sudo', 'service', 'home-daemon-receiver', 'start'])
+            subprocess.call(['sudo', 'service', 'home-daemon-receiver', 'start']) # The call function from the subprocess module. This is basically just like the Popen class and takes all of the same arguments, but it simply waits until the command completes and gives you the return code.
     
     def status(self):
         if not subprocess.call(['sudo', 'service', 'home-daemon-receiver', 'status']):
