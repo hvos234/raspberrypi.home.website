@@ -1,171 +1,195 @@
-#include <RFM69.h>
-#include <SPI.h>
-
-#include <stdlib.h> // used for the dtostrf function
-#include "DHT.h"
-
-#define NODEID      3
-#define NETWORKID   100
-#define FREQUENCY   RF69_433MHZ //Match this with the version of your Moteino! (others: RF69_433MHZ, RF69_868MHZ)
-#define KEY         "sampleEncryptKey" //has to be same 16 characters/bytes on all nodes, not more not less!
-#define SERIAL_BAUD 9600
-
-boolean requestACK = false;
-bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
-RFM69 radio;
-
+// HomeDHT
 //#define DHTTYPE DHT11   // DHT 11 
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 #define DHTPIN 6     // what pin the DHT is connected to
-#define UNIT 1      // 0 for Fahrenheit and 1 for Celsius
 
-DHT dht(DHTPIN, DHTTYPE); // set dht
+#include <DHT.h> // work 1.0, 1.1
+#include <HomeDHT.h>
 
-// declare actions
+HomeDHT homedht(DHTPIN, DHTTYPE); // work 1.0
+
+// temperature or humdity 20.02 is 5 plus \0
+char temperature[7];
+char humdity[7];
+
+// HomeRFM69
+#define FREQUENCY   RF69_433MHZ //Match this with the version of your Moteino! (others: RF69_433MHZ, RF69_868MHZ)
+#define NODEID      4
+#define NETWORKID   100
+#define KEY         "sampleEncryptKey" //has to be same 16 characters/bytes on all nodes, not more not less!
+#define PROMISCUOUSMODE  false //set to 'true' to sniff all packets on the same network
+#define ACK         true
+#define ACK_RETRIES 2
+#define ACK_WAIT    1000 // default is 40 ms at 4800 bits/s, now 160 ms at 1200 bits/s (160 is to low for a long distance, 510 for 10 meters)
+#define TIMEOUT     3000 // wait for respones
+
+byte sendSize=0;
+boolean requestACK = false;
+
+#include <RFM69.h>
+#include <SPI.h>
+#include <HomeRFM69.h>
+
+HomeRFM69 homerfm69;
+
+/*
+to 
+raspberry Pi  ->  master        fr:99;to:99;ac:99
+master        ->  device        ac:99
+
+back
+device        ->  master        ac:99;msg:t:99.99,h:99.99
+master        ->  raspberry Pi  ac:99;msg:t:99.99,h:99.99 
+*/
+
+// max payload or data is ac:99;msg:t:99.99,h:99.99 is 31 plus \0
+char payload[33];
+char data[33];
+
+// max message is t:99.99,h:99.99 is 15 plus \0
+char message[17];
+
+// rest
+#define SERIAL_BAUD 9600
+
+// actions
 #define ACTIONTEMP 1 // send temperature
 #define ACTIONHUM 2 // send humidity
 #define ACTIONTEMPHUM 3 // send temperature and humidity
 
-char payload_receive[27]; // ac;13|msg;t:22.90,h:41.30 + \0 i think
-char payload_send[27];
-char message[17]; // size of t:22.90,h:41.30 + \0 i think
-
-int ac;
-char msg[17]; // same as message
+long transPeriod = random((1000 * 60 * 60), ((1000 * 60 * 60) + (1000 * 60 * 5))); //transmit a packet to gateway so often (in ms)
+unsigned long currentPeriod = 0;
+unsigned long previousPeriod = 0;
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
-  delay(10);
-  radio.initialize(FREQUENCY,NODEID,NETWORKID);
-  //radio.setHighPower(); //uncomment only for RFM69HW!
+  homerfm69.initialize(FREQUENCY, NODEID, NETWORKID, KEY, PROMISCUOUSMODE, ACK, ACK_RETRIES, ACK_WAIT, TIMEOUT);
   
-  // this change the bitrate from 4800 to 1200, and Frequenty level to max
-  radio.writeReg(0x03,0x68);      //RegBitrateMsb 1200 bitrate
-  radio.writeReg(0x04,0x2B);      //RegBitrateLsb 1200 bitrate
-  radio.writeReg(0x05,0x00);      //RegFdevMsb     2000 
-  radio.writeReg(0x06,0x52);      //RegFdevLsb     2000
-  radio.writeReg(0x19,0x40|0x10|0x05);      //RegRxBw  DccFreq:010, RxBw_Mant:24, RxBw_Exp:5 
-  radio.writeReg(0x18,0x00|0x00|0x01);      //RegLna  LnaZin:50ohm, LowPower:Off, CurrentGain:MAX
-  
-  radio.encrypt(KEY);
-  radio.promiscuous(promiscuousMode);
+  // if analog input pin 0 is unconnected, random analog
+  // noise will cause the call to randomSeed() to generate
+  // different seed numbers each time the sketch runs.
+  // randomSeed() will then shuffle the random function.
+  randomSeed(analogRead(0));
   
   Serial.println("Setup Finished !");
 }
 
-char *messageTempHum(int ac, char* message){
-  char tem[10]; //2 int, 2 dec, 1 point, and \0
-  char hum[10];
-  
-  // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
-  float tf = t * 1.8 +32;  //Convert from C to F
-  
-  // check if returns are valid, if they are NaN (not a number) then something went wrong!
-  if (isnan(t) || isnan(h)) {
-    Serial.println("Failed read DHT");
-    sprintf(message, "err:%s", "fa re");
+void loop() {
+  //process any receiving data
+  if (homerfm69.receiveDone()){
+    memset(&message, 0, sizeof(message)); // clear it
     
-  }else {
-    Serial.print("Humidity: "); 
-    Serial.print(h);
-    Serial.print(" %\t");
+    memset(&data, 0, sizeof(data)); // clear it
+    strncpy( data, homerfm69.getData(), sizeof(data)-1 );
     
-    Serial.print("Temperature: "); 
-    if (UNIT == 0 ){  //choose the right unit F or C
-      Serial.print(tf);
-      Serial.println(" *F");
-    }
-    else {
-      Serial.print(t);
-      Serial.println(" *C");
-    }
+    homerfm69.sendACKRequested();
+    
+    Serial.print("Received: ");
+    Serial.println(data);
+    
+    if(!homerfm69.sscanfData(data)){
+      sprintf(message, "err:rfm69,%d", homerfm69.getErrorId());
+    }else {
       
-    dtostrf(h, 2, 2, hum);  //Floats don't work in sprintf statements on Arduino without pain, so convert to string separately.
-    dtostrf(t, 2, 2, tem);
-    
-    Serial.print("Message: ");
-    Serial.print("hum: ");
-    Serial.print(hum);
-    Serial.print("tem: ");
-    Serial.println(tem);
-    
-    // build message
-    if(ACTIONTEMP == ac){ // temperature
-      sprintf(message, "t:%s", tem);
+      if(ACTIONTEMP != homerfm69.getAction() && ACTIONHUM != homerfm69.getAction() && ACTIONTEMPHUM != homerfm69.getAction()){
+        sprintf(message, "err:%s", "no ac");
+      }
+      
+      if(ACTIONTEMP == homerfm69.getAction()){
+        memset(&temperature, 0, sizeof(temperature)); // clear it
+        strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
+  
+        if(homedht.getError()){
+          sprintf(message, "err:dht,%d", homedht.getErrorId());
+              
+        }else {
+          sprintf(message, "t:%s", temperature);
+        }
+      }
+          
+      if(ACTIONHUM == homerfm69.getAction()){
+        memset(&humdity, 0, sizeof(humdity)); // clear it
+        strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
+            
+        if(homedht.getError()){
+          sprintf(message, "err:dht,%d", homedht.getErrorId());
+        }else {
+          sprintf(message, "h:%s", humdity);
+        }
+      }
+          
+      if(ACTIONTEMPHUM == homerfm69.getAction()){
+        memset(&temperature, 0, sizeof(temperature)); // clear it
+        strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
+  
+        if(homedht.getError()){
+          sprintf(message, "err:dht,%d", homedht.getErrorId());
+          
+        }else {
+          memset(&humdity, 0, sizeof(humdity)); // clear it
+          strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
+              
+          if(homedht.getError()){
+            sprintf(message, "err:dht,%d", homedht.getErrorId());
+            
+          }else {
+            sprintf(message, "t:%s,h:%s", temperature, humdity);
+          }
+        }
+      }
     }
-    if(ACTIONHUM == ac){ // humidity
-      sprintf(message, "h:%s", hum);
-    } 
-    if(ACTIONTEMPHUM == ac){ // temperature and humidity
-      sprintf(message, "t:%s,h:%s", tem, hum);
+        
+    memset(&payload, 0, sizeof(payload)); // clear it
+    sprintf(payload, "ac:%d;msg:%s", homerfm69.getAction(), message);
+    
+    Serial.print("Sending:  ");
+    Serial.println(payload);
+    
+    bool success;
+    success = homerfm69.sendWithRetry(homerfm69.getSenderId(), payload, strlen(payload)+2);
+    
+    if(homerfm69.getError()){
+      Serial.print("err:rfm69,");
+      Serial.println(homerfm69.getErrorId());
     }
   }
-}
+  
+  unsigned long currentPeriod = millis();
+  if (currentPeriod - previousPeriod >= transPeriod || currentPeriod < previousPeriod) {
+    previousPeriod = currentPeriod;
+    transPeriod = random((1000 * 60 * 60), ((1000 * 60 * 60) + (1000 * 60 * 5)));
+    
+    memset(&temperature, 0, sizeof(temperature)); // clear it
+    strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
 
-void loop() {
-  //check for any received packets
-  if (radio.receiveDone())
-  {
-    
-    memset(&payload_receive, 0, sizeof(payload_receive)); // clear it
-    for (byte i = 0; i < radio.DATALEN; i++)
-    {
-      payload_receive[i] = (char)radio.DATA[i];
-    }
-    
-    Serial.println("Received ..");
-    Serial.print("Sender id: ");
-    Serial.println(radio.SENDERID, DEC);
-    Serial.print("Sender RX RSSI: ");
-    Serial.println(radio.readRSSI());
-    Serial.print("Payload size: ");
-    Serial.println(sizeof(payload_receive));
-    Serial.print("Payload: ");
-    Serial.println(payload_receive);
-    
-    ac = 0;
-    memset(&msg, 0, sizeof(msg)); // clear it
-    sscanf((char *)payload_receive, "ac:%d,msg:%s", &ac, &msg);
-    
-    Serial.print("Action: ");
-    Serial.println(ac);
-    Serial.print("Message: ");
-    Serial.println(msg);
-    
-    memset(&message, 0, sizeof(message)); // clear it
-    if(ACTIONTEMP == ac || ACTIONHUM == ac || ACTIONTEMPHUM == ac){
-      messageTempHum(ac, message);
+    if(homedht.getError()){
+      sprintf(message, "err:dht,%d", homedht.getErrorId());
       
     }else {
-      Serial.println("Action does not exist !");
-      sprintf(message, "err:%s", "ac no");
+      memset(&humdity, 0, sizeof(humdity)); // clear it
+      strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
+          
+      if(homedht.getError()){
+        sprintf(message, "err:dht,%d", homedht.getErrorId());
+        
+      }else {
+        sprintf(message, "t:%s,h:%s", temperature, humdity);
+      }
     }
     
-    Serial.print("Message: ");
-    Serial.println(message);
+    memset(&payload, 0, sizeof(payload)); // clear it
+    sprintf(payload, "ac:%d;msg:%s", 3, message);
     
-    Serial.print("payload_send: ");
-    Serial.println(payload_send);
+    Serial.print("Sending Period:  ");
+    Serial.println(payload);
     
-    memset(&payload_send, 0, sizeof(payload_send)); // clear it
-    Serial.print("payload_send2: ");
-    Serial.println(payload_send);
+    bool success;
+    success = homerfm69.sendWithRetry(1, payload, strlen(payload)+2);
     
-    sprintf(payload_send, "ac:%d,msg:%s", ac, message);
-    
-    Serial.print("payload_send3: ");
-    Serial.println(payload_send);
-    
-    Serial.println("Sending ..");
-    Serial.print("Payload size: ");
-    Serial.println(sizeof(payload_send));
-    Serial.print("Payload: ");
-    Serial.println(payload_send);
-    radio.send(radio.SENDERID, (const void*)(&payload_send), sizeof(payload_send), false);
-    delay(25); // make sure payload is send
+    if(homerfm69.getError()){
+      Serial.print("err:rfm69,");
+      Serial.println(homerfm69.getErrorId());
+    }
   }
 }

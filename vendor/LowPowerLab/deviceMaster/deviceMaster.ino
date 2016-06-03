@@ -1,250 +1,221 @@
-#include <RFM69.h>
-#include <SPI.h>
+// HomeSerail
+#include <HomeSerial.h>
+HomeSerial homeserial;
 
-#include <stdlib.h> // used for the dtostrf function
-#include "DHT.h"
+// max serial is fr:99;to:99;ac:99;msg:t:99.99,h:99.99 is 37 plus ^$ plus \0
+char serial[39];
+// max message is t:99.99,h:99.99 is 15 plus \0
+char message[17];
 
-#define NODEID      1
-#define NETWORKID   100
-#define FREQUENCY   RF69_433MHZ //Match this with the version of your Moteino! (others: RF69_433MHZ, RF69_868MHZ)
-#define KEY         "sampleEncryptKey" //has to be same 16 characters/bytes on all nodes, not more not less!
-#define SERIAL_BAUD 9600
-#define TIMEOUT     6000 // wait for respones
-
-boolean requestACK = false;
-RFM69 radio;
-bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
-
+// HomeDHT
 //#define DHTTYPE DHT11   // DHT 11 
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 #define DHTPIN 6     // what pin the DHT is connected to
-#define UNIT 1      // 0 for Fahrenheit and 1 for Celsius
 
-DHT dht(DHTPIN, DHTTYPE); // set dht
+#include <DHT.h> // work 1.0, 1.1
+#include <HomeDHT.h>
 
-// declare actions
+HomeDHT homedht(DHTPIN, DHTTYPE); // work 1.0
+
+// temperature or humdity 20.02 is 5 plus \0
+char temperature[7];
+char humdity[7];
+
+// HomeRFM69
+#define FREQUENCY   RF69_433MHZ //Match this with the version of your Moteino! (others: RF69_433MHZ, RF69_868MHZ)
+#define NODEID      1
+#define NETWORKID   100
+#define KEY         "sampleEncryptKey" //has to be same 16 characters/bytes on all nodes, not more not less!
+#define PROMISCUOUSMODE  false //set to 'true' to sniff all packets on the same network
+#define ACK         true
+#define ACK_RETRIES 2
+#define ACK_WAIT    1000 // default is 40 ms at 4800 bits/s, now 160 ms at 1200 bits/s (160 is to low for a long distance, 510 for 10 meters)
+#define TIMEOUT     3000 // wait for respones
+
+byte sendSize=0;
+boolean requestACK = false;
+
+#include <RFM69.h>
+#include <SPI.h>
+#include <HomeRFM69.h>
+
+HomeRFM69 homerfm69;
+
+/*
+to 
+raspberry Pi  ->  master        fr:99;to:99;ac:99
+master        ->  device        ac:99
+
+back
+device        ->  master        ac:99;msg:t:99.99,h:99.99
+master        ->  raspberry Pi  fr:99;to:99;ac:99;msg:t:99.99,h:99.99 
+*/
+
+// max payload or data is ac:99;msg:t:99.99,h:99.99 is 31 plus \0
+char payload[33];
+char data[33];
+
+// rest
+#define SERIAL_BAUD 9600
+
+// actions
 #define ACTIONTEMP 1 // send temperature
 #define ACTIONHUM 2 // send humidity
 #define ACTIONTEMPHUM 3 // send temperature and humidity
 
-char payload_receive[27]; // ac;13|msg;t:22.90,h:41.30 + \0 i think
-char payload_send[27];
-char message[17];
-
-int ac;
-char msg[15];
-
-boolean serial_read = false; // out of loop or the if true statement will read always false
-boolean serial_received = false;
-int serial_i = 0;
-
-//String serial_receive = "";
-char serial_receive[27]; // same as payload
-char serial_send[27];
-char serial_message[17]; // same as message
-
-int serial_fr;
-int serial_to;
-int serial_ac;
-char serial_msg[17]; // same as message
-
 void setup() {
   Serial.begin(SERIAL_BAUD);
-  delay(10);
-  radio.initialize(FREQUENCY,NODEID,NETWORKID);
-  //radio.setHighPower(); //uncomment only for RFM69HW!
-  
-  // this change the bitrate from 4800 to 1200, and Frequenty level to max
-  radio.writeReg(0x03,0x68);      //RegBitrateMsb 1200 bitrate
-  radio.writeReg(0x04,0x2B);      //RegBitrateLsb 1200 bitrate
-  radio.writeReg(0x05,0x00);      //RegFdevMsb     2000 
-  radio.writeReg(0x06,0x52);      //RegFdevLsb     2000
-  radio.writeReg(0x19,0x40|0x10|0x05);      //RegRxBw  DccFreq:010, RxBw_Mant:24, RxBw_Exp:5 
-  radio.writeReg(0x18,0x00|0x00|0x01);      //RegLna  LnaZin:50ohm, LowPower:Off, CurrentGain:MAX
-  
-  radio.encrypt(KEY);
-  radio.promiscuous(promiscuousMode);
+  homerfm69.initialize(FREQUENCY, NODEID, NETWORKID, KEY, PROMISCUOUSMODE, ACK, ACK_RETRIES, ACK_WAIT, TIMEOUT);
   
   Serial.println("Setup Finished !");
 }
 
-char *messageTempHum(int ac, char* message){
-  char tem[10]; //2 int, 2 dec, 1 point, and \0
-  char hum[10];
-  
-  // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
-  float tf = t * 1.8 +32;  //Convert from C to F
-  
-  // check if returns are valid, if they are NaN (not a number) then something went wrong!
-  if (isnan(t) || isnan(h)) {
-    Serial.println("Failed read DHT");
-    sprintf(message, "err:%s", "fa re");
-    
-  }else {
-    Serial.print("Humidity: "); 
-    Serial.print(h);
-    Serial.print(" %\t");
-    
-    Serial.print("Temperature: "); 
-    if (UNIT == 0 ){  //choose the right unit F or C
-      Serial.print(tf);
-      Serial.println(" *F");
-    }
-    else {
-      Serial.print(t);
-      Serial.println(" *C");
-    }
-      
-    dtostrf(h, 2, 2, hum);  //Floats don't work in sprintf statements on Arduino without pain, so convert to string separately.
-    dtostrf(t, 2, 2, tem);
-    
-    Serial.print("Message: ");
-    Serial.print("hum: ");
-    Serial.print(hum);
-    Serial.print("tem: ");
-    Serial.println(tem);
-    
-    // build message
-    if(ACTIONTEMP == ac){ // temperature
-      sprintf(message, "t:%s", tem);
-    }
-    if(ACTIONHUM == ac){ // humidity
-      sprintf(message, "h:%s", hum);
-    } 
-    if(ACTIONTEMPHUM == ac){ // temperature and humidity
-      sprintf(message, "t:%s,h:%s", tem, hum);
-    }
-  }
-}
-
 void loop() {
   //process any serial input
-  if (Serial.available() > 0)
-  {
+  if (Serial.available() > 0) {
     
-    memset(&serial_receive, 0, sizeof(serial_receive)); // clear char array
-    
-    //serial_receive = "";
-    //serial_receive = Serial.readBytesUntil('\0');
-    //Serial.readBytesUntil(10, serial_receive, 32);
-    
-    while (Serial.available () > 0) {
-      char serial_char = Serial.read ();
-      Serial.print("Serial While Char: ");
-      Serial.println(serial_char);
-        
-      if('^' == serial_char){
-        Serial.println("Serial Begin .. ");
-        serial_read = true;
-        serial_received = false;
-        serial_i = 0;
-        
-      }else if ('$' == serial_char){
-        Serial.println("Serial End .. ");
-        serial_receive[serial_i] = '\0';
-        
-        serial_read = false;
-        serial_received = true;
-        serial_i = 0;
-        
-      }else if(serial_read){
-        Serial.print("Serial Char: ");
-        Serial.println(serial_char);
-        serial_receive[serial_i] = serial_char;
-        serial_i++;
-      }
-    }
-    
-    if(serial_received){
+    if(homeserial.readSerial()){
+      
+      memset(&serial, 0, sizeof(serial)); // clear it
+      strncpy( serial, homeserial.getSerial(), sizeof(serial)-1 );
+      
       Serial.print("Serial Received: ");
-      Serial.println(serial_receive);
-      serial_received = false;
+      Serial.println(serial);
       
-      serial_fr = 0;
-      serial_to = 0;
-      serial_ac = 0;
-      sscanf((char *)serial_receive, "fr:%d,to:%d,ac:%d", &serial_fr, &serial_to, &serial_ac);
+      if(!homeserial.sscanfSerial(serial)){
+        memset(&serial, 0, sizeof(serial)); // clear it
+        sprintf(serial, "fr:%d;to:%d;ac:%d;msg:err:ser,%d", 0, 0, 0, homeserial.getErrorId());
+        homeserial.writeSerial(serial);
+        exit(0);
+      }
       
-      Serial.print("Serial From: ");
-      Serial.println(serial_fr);
-      Serial.print("Serial To: ");
-      Serial.println(serial_to);
-      Serial.print("Serial Action: ");
-      Serial.println(serial_ac);
-      
-      if(NODEID == serial_fr && NODEID == serial_to){ // if its for me
+      memset(&message, 0, sizeof(message)); // clear it
+      strncpy( message, homeserial.getMessage(), sizeof(message)-1 );
+          
+      if(NODEID == homeserial.getFrom() && NODEID == homeserial.getTo()){ // if its for me
+        memset(&message, 0, sizeof(message)); // clear it
         
-        memset(&serial_message, 0, sizeof(serial_message)); // clear it
-        if(ACTIONTEMP == serial_ac || ACTIONHUM == serial_ac || ACTIONTEMPHUM == serial_ac){
-          messageTempHum(ac, serial_message);
-          
-          Serial.print("Serial Message: ");
-          Serial.println(serial_message);
-          
-        }else {
-          Serial.println("Action does not exist !");
-          sprintf(serial_message, "err:%s", "ac no");
+        if(ACTIONTEMP != homeserial.getAction() && ACTIONHUM != homeserial.getAction() && ACTIONTEMPHUM != homeserial.getAction()){
+          sprintf(message, "err:%s", "no ac");
         }
-        
-      }else if(NODEID == serial_fr && 0 != serial_to && 0 != serial_ac){
-        
-        memset(&serial_message, 0, sizeof(serial_message)); // clear it
-        memset(&payload_send, 0, sizeof(payload_send)); // clear it
-        sprintf(payload_send, "ac:%d,msg:%s", serial_ac, message);
-        
-        Serial.println("Sending ..");
-        Serial.print("Payload size: ");
-        Serial.println(sizeof(payload_send));
-        Serial.print("Payload: ");
-        Serial.println(payload_send);
-        radio.send(serial_to, (const void*)(&payload_send), sizeof(payload_send), false);
-        delay(25); // make sure payload is send
-        
-        // Wait here until we get a response, or timeout (250ms)
-        unsigned long started_waiting_at = millis();
-        bool timeout = false;
-        
-        // wait for respones
-        while( ! radio.receiveDone() && ! timeout ) {
-          if (millis() - started_waiting_at > TIMEOUT ) {
-            timeout = true;
+                  
+        if(ACTIONTEMP == homeserial.getAction()){
+          memset(&temperature, 0, sizeof(temperature)); // clear it
+          strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
+  
+          if(homedht.getError()){
+            sprintf(message, "err:dht,%d", homedht.getErrorId());
+            
+          }else {
+            sprintf(message, "t:%s", temperature);
           }
         }
         
-        if ( timeout ) {
-          Serial.println("Nothing recieved !");
+        if(ACTIONHUM == homeserial.getAction()){
+          memset(&humdity, 0, sizeof(humdity)); // clear it
+          strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
           
-        } else {
-          memset(&payload_receive, 0, sizeof(payload_receive)); // clear it
-          for (byte i = 0; i < radio.DATALEN; i++)
-          {
-            payload_receive[i] = (char)radio.DATA[i];
+          if(homedht.getError()){
+            sprintf(message, "err:dht,%d", homedht.getErrorId());
+            
+          }else {
+            sprintf(message, "h:%s", humdity);
           }
-          
-          Serial.println("Received ..");
-          Serial.print("Sender id: ");
-          Serial.println(radio.SENDERID, DEC);
-          Serial.print("Sender RX RSSI: ");
-          Serial.println(radio.readRSSI());
-          Serial.print("Payload size: ");
-          Serial.println(sizeof(payload_receive));
-          Serial.print("Payload: ");
-          Serial.println(payload_receive);
-          
-          ac = 0;
-          memset(&msg, 0, sizeof(msg)); // clear it
-          sscanf((char *)payload_receive, "ac:%d,msg:%s", &ac, &msg);
-          
-          Serial.print("Action: ");
-          Serial.println(ac);
-          Serial.print("Message: ");
-          Serial.println(msg);
         }
+        
+        if(ACTIONTEMPHUM == homeserial.getAction()){
+          memset(&temperature, 0, sizeof(temperature)); // clear it
+          strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
+  
+          if(homedht.getError()){
+            sprintf(message, "err:dht,%d", homedht.getErrorId());
+            
+          }else {        
+            memset(&humdity, 0, sizeof(humdity)); // clear it
+            strncpy( humdity, homedht.getHumdity(), sizeof(humdity)-1 );
+            
+            if(homedht.getError()){
+              sprintf(message, "err:dht,%d", homedht.getErrorId());
+              
+            }else {
+              sprintf(message, "t:%s,h:%s", temperature, humdity);
+            }
+          }
+        }
+        
+        memset(&serial, 0, sizeof(serial)); // clear it
+        sprintf(serial, "fr:%d;to:%d;ac:%d;msg:%s", homeserial.getTo(), homeserial.getFrom(), homeserial.getAction(), message);
+        
+        Serial.print("Serial write: ");
+        Serial.println(serial);
+        homeserial.writeSerial(serial);
+      }
+          
+      if(NODEID == homeserial.getFrom() && 1 != homeserial.getTo()){ // if its for someone else
+        memset(&message, 0, sizeof(message)); // clear it
+        
+        memset(&payload, 0, sizeof(payload)); // clear it
+        sprintf(payload, "ac:%d;msg:%s", homeserial.getAction(), message);
+        
+        Serial.print("Sending:  ");
+        Serial.println(payload);
+        
+        memset(&data, 0, sizeof(data)); // clear it
+        strncpy( data, homerfm69.sendWithRetryAndreceiveWithTimeOut(homeserial.getTo(), payload, strlen(payload)+2), sizeof(data)-1 );
+              
+        if(homerfm69.getError()){
+          sprintf(message, "err:rfm69,%d", homerfm69.getErrorId());
+          
+        }else {        
+          Serial.print("Received:  ");
+          Serial.println(data);
+          
+          if(!homerfm69.sscanfData(data)){
+            sprintf(message, "err:rfm69,%d", homerfm69.getErrorId());
+            
+          }else {
+            memset(&message, 0, sizeof(message)); // clear it
+            sprintf(message, "%s", homerfm69.getMessage());
+          }
+        }
+        
+        memset(&serial, 0, sizeof(serial)); // clear it
+        sprintf(serial, "fr:%d;to:%d;ac:%d;msg:%s", homeserial.getFrom(), homeserial.getTo(), homerfm69.getAction(), message);
+        
+        Serial.print("Serial write: ");
+        Serial.println(serial);
+        homeserial.writeSerial(serial);
+        
+        //delay(TIMEOUT); // or else it can occure that it will receive the message agian
       }
     }
+  }
+  
+  //process any receiving data
+  if (homerfm69.receiveDone()){ 
+    memset(&message, 0, sizeof(message)); // clear it
+
+    memset(&data, 0, sizeof(data)); // clear it
+    strncpy( data, homerfm69.getData(), sizeof(data)-1 );
+    
+    homerfm69.sendACKRequested();
+    
+    Serial.print("Received done:  ");
+    Serial.println(data);
+    
+    memset(&serial, 0, sizeof(serial)); // clear it
+    if(!homerfm69.sscanfData(data)){
+      sprintf(message, "err:rfm69,%d", homerfm69.getErrorId());
+      
+    }else {
+      sprintf(message, "%s", homerfm69.getMessage());
+    }
+    
+    sprintf(serial, "fr:%d;to:%d;ac:%d;msg:%s", homerfm69.getSenderId(), NODEID, homerfm69.getAction(), message);
+    
+    Serial.print("Serial write done: ");
+    Serial.println(serial);
+    homeserial.writeSerial(serial);
   }
 }
