@@ -156,9 +156,9 @@ void loop() {
   }
   
   unsigned long currentPeriod = millis();
-  if (currentPeriod - previousPeriod >= transPeriod || currentPeriod <= previousPeriod) {
+  if (currentPeriod - previousPeriod >= transPeriod || currentPeriod < previousPeriod) {
+    previousPeriod = currentPeriod;
     transPeriod = random((1000 * 60 * 60), ((1000 * 60 * 60) + (1000 * 60 * 5)));
-    previousPeriod += transPeriod; // this is for a more consistend frequentie instate of previousPeriod = currentPeriod;
     
     memset(&temperature, 0, sizeof(temperature)); // clear it
     strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
