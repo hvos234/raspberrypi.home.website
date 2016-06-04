@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # logging
-#from home_daemon_logging import logger
-#logger.info("Home Daemon Receiver Starting !")
+from home_daemon_logging import logger
+logger.info("Home Daemon Receiver Starting !")
 print "Home Daemon Receiver Starting !"
 
 # imports
@@ -37,7 +37,7 @@ def cleanup():
 
 # SIGTERM handler
 def signal_term_handler(signal, frame):
-    #logger.info("Home Daemon Receiver got SIGTERM !")
+    logger.info("Home Daemon Receiver got SIGTERM !")
     print "Home Daemon Receiver got SIGTERM !"
     cleanup()
     sys.exit(0)
@@ -46,7 +46,7 @@ signal.signal(signal.SIGTERM, signal_term_handler)
 
 # SIGINT handler
 def signal_int_handler(signal, frame):
-    #logger.info("Home Daemon Receiver got SIGINT !")
+    logger.info("Home Daemon Receiver got SIGINT !")
     print "Home Daemon Receiver got SIGINT !"
     cleanup()
     sys.exit(0)
@@ -54,7 +54,7 @@ def signal_int_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_int_handler)
 
 # run
-#logger.info("Home Daemon Receiver Running !")
+logger.info("Home Daemon Receiver Running !")
 print "Home Daemon Receiver Running !"
 
 while True:

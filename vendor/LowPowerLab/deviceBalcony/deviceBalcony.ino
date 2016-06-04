@@ -58,7 +58,7 @@ char message[17];
 #define ACTIONHUM 2 // send humidity
 #define ACTIONTEMPHUM 3 // send temperature and humidity
 
-long transPeriod = random((1000 * 60 * 60), ((1000 * 60 * 60) + (1000 * 60 * 5))); //transmit a packet to gateway so often (in ms)
+long transPeriod = random(3600000, 3900000); //transmit a packet to gateway so often (in ms) (between 1 houre and 1 houre and 5 minutes)
 unsigned long currentPeriod = 0;
 unsigned long previousPeriod = 0;
 
@@ -158,7 +158,7 @@ void loop() {
   unsigned long currentPeriod = millis();
   if (currentPeriod - previousPeriod >= transPeriod || currentPeriod < previousPeriod) {
     previousPeriod = currentPeriod;
-    transPeriod = random((1000 * 60 * 60), ((1000 * 60 * 60) + (1000 * 60 * 5)));
+    transPeriod = random(3600000, 3900000); //transmit a packet to gateway so often (in ms) (between 1 houre and 1 houre and 5 minutes)
     
     memset(&temperature, 0, sizeof(temperature)); // clear it
     strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
