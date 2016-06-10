@@ -25,6 +25,7 @@ class ReceiverController extends Controller
      */
     public function actionIndex($output)
     {
+			Yii::info('recieved output', 'task');
 			return Task::receiver(array($output));
     }
 }

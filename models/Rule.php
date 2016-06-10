@@ -13,6 +13,9 @@ use yii\helpers\ArrayHelper;
 
 use app\models\RuleCondition;
 use app\models\RuleAction;
+//use app\models\Condition;
+
+//use app\models\HelperData;
 
 /**
  * This is the model class for table "{{%rule}}".
@@ -115,7 +118,7 @@ class Rule extends \yii\db\ActiveRecord
 		$this->values['setting'] = Setting::getAllIdName();
 		
 		// add all setting
-		$this->values['condition'] = Condition::models();
+		$this->values['condition'] = Condition::getAllIdName();
 		
 		// translate all
 		foreach ($this->conditions_actions as $condition_action => $name){
@@ -200,6 +203,86 @@ class Rule extends \yii\db\ActiveRecord
 						'value' => new Expression('NOW()'),
 					],
 			 ];
+		}
+		
+		public static function execute($id){
+			Yii::info('execute: ' . $id, 'rule');
+			$model = Rule::findOne($id);
+			
+			// Rule Condition
+			
+			$modelsRuleCondition = RuleCondition::findAll(['rule_id' => $id]);
+			
+			foreach($modelsRuleCondition as $modelRuleCondition){
+				Yii::info('$modelRuleCondition->id: ' . $modelRuleCondition->id, 'rule');
+				Yii::info('$modelRuleCondition->condition: ' . $modelRuleCondition->condition, 'rule');
+				Yii::info('$modelRuleCondition->condition_value: ' . $modelRuleCondition->condition_value, 'rule');
+				Yii::info('$modelRuleCondition->equation: ' . $modelRuleCondition->equation, 'rule');
+				Yii::info('$modelRuleCondition->value: ' . $modelRuleCondition->value, 'rule');
+				
+				if(!class_exists('app\models\\' . $modelRuleCondition->condition)){
+					return false;
+				}
+				//exit();
+				
+				//$classname = 'app\models\\' . ucfirst($modelRuleCondition->condition);
+				//echo('$classname: ' . $classname) . '<br/>' . PHP_EOL;
+				//echo('$modelRuleCondition->condition: ' . $modelRuleCondition->condition) . '<br/>' . PHP_EOL;
+				//echo('$modelRuleCondition->condition_value: ' . $modelRuleCondition->condition_value) . '<br/>' . PHP_EOL;
+				//exit();
+				
+				$condition = call_user_func(array('app\models\\' . ucfirst($modelRuleCondition->condition), 'ruleCondition'), $modelRuleCondition->condition_value);
+				Yii::info('$condition: ' . $condition, 'rule');
+				
+				var_dump($condition);
+				echo('$condition: <pre>');
+				print_r($condition);
+				echo('</pre>');
+				
+				
+				$values = HelperData::dataExplode($modelRuleCondition->value);
+				var_dump($values);
+				
+				/*
+				'==' => 'Equal',
+				'!=' => 'Not equal',
+				'>=' => 'Bigger or Equal', 
+				'<=' => 'Smaller or Equal', 
+				'>' => 'Bigger', 
+				'<' => 'Smaller',
+				 */
+				// if one of the $values is true relative to the $condition
+				$equation = false;
+				Yii::info('$equation: ' . var_export($equation), 'rule');
+				
+				foreach ($values as $value){
+					Yii::info('$value: ' . $value, 'rule');
+					
+					$equal = version_compare($condition, $value, $modelRuleCondition->equation);
+					Yii::info('$equal: ' . var_export($equal), 'rule');
+					var_dump($equal);
+					
+					if($equal){
+						$equation = true;
+					}
+				}
+				
+				if(!$equation){
+					Yii::info('!$equation', 'rule');
+					return false;
+				}
+			}
+			
+			$modelsRuleAction = RuleAction::findAll(['rule_id' => $id]);
+			
+			foreach($modelsRuleAction as $modelRuleAction){
+				Yii::info('$modelRuleAction->id: ' . $modelRuleAction->id, 'rule');
+				Yii::info('$modelRuleAction->action: ' . $modelRuleAction->action, 'rule');
+				Yii::info('$modelRuleAction->action_value: ' . $modelRuleAction->action_value, 'rule');
+				Yii::info('$modelRuleAction->value: ' . $modelRuleAction->value, 'rule');
+				Yii::info('$modelRuleAction->value_value: ' . $modelRuleAction->value_value, 'rule');
+			}
+			exit();
 		}
 		
 		public static function getAllIdName(){

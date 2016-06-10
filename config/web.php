@@ -7,6 +7,7 @@ $config = [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
 		'language' => 'nl', // added to support i18n, netherlands
+		'timezone' => 'Europe/Amsterdam',
 		/*'formatter' => [
 			'defaultTimeZone' => 'UTC',
 			'timeZone' => 'Europe/Amsterdam',
@@ -34,8 +35,42 @@ $config = [
             'useFileTransport' => true,
         ],
         'log' => [
-            'traceLevel' => YII_DEBUG ? 3 : 0,
+            //'traceLevel' => YII_DEBUG ? 3 : 0,
+						'traceLevel' => 0,
+						//'flushInterval' => 1000, // log immediately
             'targets' => [
+								[
+										'class' => 'yii\log\FileTarget',
+										'levels' => ['trace', 'info', 'error', 'warning'],
+										//'exportInterval' => 1, // log immediately
+										'categories' => ['task'],
+										'logFile' => '@app/runtime/logs/task.log',
+										'logVars' => [],
+								],
+								[
+										'class' => 'yii\log\FileTarget',
+										'levels' => ['trace', 'info', 'error', 'warning'],
+										//'exportInterval' => 1, // log immediately
+										'categories' => ['task-transmitter'],
+										'logFile' => '@app/runtime/logs/task-transmitter.log',
+										'logVars' => [],
+								],
+								[
+										'class' => 'yii\log\FileTarget',
+										'levels' => ['trace', 'info', 'error', 'warning'],
+										//'exportInterval' => 1, // log immediately
+										'categories' => ['task-receiver'],
+										'logFile' => '@app/runtime/logs/task-receiver.log',
+										'logVars' => [],
+								],
+								[
+										'class' => 'yii\log\FileTarget',
+										'levels' => ['trace', 'info', 'error', 'warning'],
+										//'exportInterval' => 1, // log immediately
+										'categories' => ['rule'],
+										'logFile' => '@app/runtime/logs/rule.log',
+										'logVars' => [],
+								],
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],

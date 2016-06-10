@@ -38,10 +38,12 @@ from home_serial import home_serial
 #from home_mysql import home_mysql
 
 # daemon
+print "Home Transmitter Stops Home Daemon !"
 _home_daemon = home_daemon()
 _home_daemon.stop()
 
 # serial
+print "Home Transmitter Serial Connect !"
 _home_serial = home_serial()
 _home_serial.connect(3)
 time.sleep(1) # wait to device is started up
@@ -55,6 +57,7 @@ timeout_start = time.time()
 
 # cleanup
 def cleanup():
+    print "Home Transmitter Cleanup !"
     #global _home_mysql
     #del _home_mysql
     global _home_serial
@@ -83,18 +86,23 @@ signal.signal(signal.SIGINT, signal_int_handler)
 #logger.info("Home Transmitter Running !")
 print "Home Transmitter Running !"
 
+print "Home Transmitter Serial Write !"
 #_home_serial.write("fr:" + fr + ":TO:" + to + ":TS:" + ts + ":AC:" + ac + ":MSG:" + msg)
 print "fr:" + fr + ";to:" + to + ";ac:" + ac
 _home_serial.write("fr:" + fr + ";to:" + to + ";ac:" + ac)
 
 while True:
+    print "Home Transmitter Serial Read !"
     string = _home_serial.read()
     print string
     if "" != string:
+        print "Home Transmitter Start Home Daemon !"
         _home_daemon.start()
         sys.exit(0)
     
     if time.time() > timeout_start + timeout:
+        print "Home Transmitter Timeout !"
         print "^fr:" + to + ";to:" + fr + ";ac:" + ac + ";msg:err:timeout$"
+        print "Home Transmitter Start Home Daemon !"
         _home_daemon.start()
         sys.exit(1)

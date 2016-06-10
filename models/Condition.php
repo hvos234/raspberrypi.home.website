@@ -9,6 +9,9 @@ use yii\base\Model;
 use app\models\Condition;
 use app\models\Setting;
 
+// The ArrayHelper, is used for building a map (key-value pairs).
+use yii\helpers\ArrayHelper;
+
 class Condition extends Model {
 	
 	public static function models(){
@@ -32,9 +35,25 @@ class Condition extends Model {
 		return false;
 	}
 	
+	public static function getAllIdName(){
+		return ArrayHelper::map(Condition::all(), 'id', 'name');
+	}
+	
 	public static function execute($id){
 		$model = Condition::one($id);
 		return call_user_func('app\models\Condition::' . $model->function); // use app\models\ or else it cannot find class
+	}
+	
+	public static function rule($id){
+		return Condition::execute($id);
+	}
+	
+	public static function ruleCondition($id){
+		return Condition::rule($id);
+	}
+	
+	public static function ruleAction($id){
+		return Condition::rule($id);
 	}
 
 	public static function IamReallyAthome(){
@@ -52,5 +71,9 @@ class Condition extends Model {
 		}
 		
 		return $iamathome;
+	}
+	
+	public static function ruleExecute(){
+		
 	}
 }

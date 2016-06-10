@@ -160,4 +160,19 @@ class Setting extends \yii\db\ActiveRecord
 		/*public static function getOneByName($name){
 			return Setting::find()->select('data')->where(['name' => $name])->asArray()->one();
 		}*/
+		
+		/*public static function rule($id){
+			return Condition::execute($id);
+		}*/
+
+		public static function ruleCondition($id){
+			$model = Setting::findOne($id);
+			return HelperData::dataExplode($model->data);
+		}
+
+		public static function ruleAction($id, $value){
+			$model = Setting::findOne($id);
+			$model->data = $value;
+			return $model->save();
+		}
 }

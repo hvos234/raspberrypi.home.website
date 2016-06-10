@@ -116,6 +116,13 @@ class RuleCondition extends \yii\db\ActiveRecord
         return new RuleConditionQuery(get_called_class());
     }
 		
+		public static function execute($rule_id){
+			$models = RuleCondition::findAll(['rule_id' => $rule_id]);
+			foreach($models as $model){
+				
+			}
+		}
+		
 		/**
 		 * Auto add date time to created_at and updated_at
 		 */

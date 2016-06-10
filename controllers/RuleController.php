@@ -245,6 +245,13 @@ class RuleController extends Controller
         return $this->redirect(['index']);
     }
 
+		public function actionExecute($id){
+			$model = new Rule();
+			$model->execute($id);
+			
+			return $this->redirect(['rule/index']);
+		}
+		
     /**
      * Finds the Rule model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.

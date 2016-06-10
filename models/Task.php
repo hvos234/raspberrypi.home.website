@@ -107,11 +107,12 @@ class Task extends \yii\db\ActiveRecord
 		 * @param type $action_id
 		 * @return type
 		 */
-		public static function execute($from_device_id, $to_device_id, $action_id, $retry = 3){			
-			return Task::transmitter($from_device_id, $to_device_id, $action_id, $retry);
+		public static function execute($from_device_id, $to_device_id, $action_id){	
+			Yii::info('execute: ' . $from_device_id . ',' . $to_device_id . ',' . $action_id, 'task');
+			return Task::transmitter($from_device_id, $to_device_id, $action_id);
 		}
 		
-		public static function transmitter($from_device_id, $to_device_id, $action_id, $retry = 3){
+		public static function transmitter($from_device_id, $to_device_id, $action_id, $retry = 3, $delay = 3){
 			$modelSetting = Setting::find()->select('data')->where(['name' => 'path_script_task'])->one();
 			
 			for($try = 1; $try <= $retry; $try++){
@@ -119,13 +120,42 @@ class Task extends \yii\db\ActiveRecord
 				// add www-data ALL=(ALL) NOPASSWD: ALL
 				// to grant execute right python
 				$command = 'sudo ' . $modelSetting->data . ' --fr ' . $from_device_id . ' --to ' . $to_device_id . ' --ac ' . $action_id;
+				
+				Yii::info('$command: ' . $command, 'task-transmitter');
 				exec(escapeshellcmd($command), $output, $return_var);
-				//echo('<pre>');
-
-				$return = Task::sscanfOutput($output);
-				if(!$return){
-					return 'err:failed execute';
+				foreach($output as $line){
+					Yii::info('$line: ' . $line, 'task-transmitter');
 				}
+				Yii::info('$return_var: ' . $return_var, 'task-transmitter');
+				
+				if(0 != $return_var){
+					if($try < $retry){
+						Yii::info('!return_var, retry and delay', 'task-transmitter');
+						sleep($delay);
+						continue;
+						
+					}else {
+						Yii::error('!return_var, failed exec', 'task-transmitter');
+						return 'err:failed exec';
+					}
+				}
+				
+				$return = Task::sscanfOutput($output);
+				
+				if(!$return){
+					Yii::info('sscanfOutput, !return', 'task-transmitter');
+					
+					if($try < $retry){
+						Yii::info('!return, retry and delay', 'task-transmitter');
+						sleep($delay);
+						continue;
+						
+					}else {
+						Yii::error('!return, no output', 'task-transmitter');
+						return 'err:no output';
+					}
+				}
+				Yii::info('sscanfOutput, return', 'task-transmitter');
 
 				// from and to are exchanged
 				$from = 0;
@@ -135,29 +165,44 @@ class Task extends \yii\db\ActiveRecord
 				list($from, $to, $action, $message) = $return;
 
 				if($from == $from_device_id and $to == $to_device_id and $action == $action_id){
+					Yii::info('$message: ' . $message, 'task-transmitter');
 					return $message;
+					
 				}else {
+					Yii::info('transmitter function to receiver function', 'task-transmitter');
+					// there is output but not for this task-transmitter
 					Task::receiver($output);
 					$try--;
 				}
 				
-				if($try+1 >= $retry){
+				if($try >= $retry){
+					Yii::error('!retry, failed trying', 'task-transmitter');
 					return 'err:failed trying';
+				}else {
+					Yii::info('retry', 'task-transmitter');
+					sleep($delay);
 				}
 			}
 			
+			Yii::error('end, failed return', 'task-transmitter');
 			return 'err:failed return';
 		}
 				
 		public static function receiver($output){
+			foreach($output as $line){
+				Yii::info('$line: ' . $line, 'task-receiver');
+			}
 			$return = Task::sscanfOutput($output);
 			
 			if($return){
+				Yii::info('sscanfOutput, return', 'task-receiver');
+				
 				$from = 0;
 				$to = 0;
 				$action = 0;
 				$message = '';
 				list($from, $to, $action, $message) = $return;
+				Yii::info('$message: ' . $message, 'task-receiver');
 				
 				$modelTask = new Task();			
 				$modelTask->from_device_id = $from;
@@ -167,10 +212,15 @@ class Task extends \yii\db\ActiveRecord
 
 				if (!$modelTask->insert()){ 
 					print_r($modelTask->errors);
+					Yii::error($modelTask->errors, 'task-receiver');
+					Yii::error('return 0 (false)', 'task-receiver');
 					return 0;
 				}
+				Yii::info('return 1 (true)', 'task-receiver');
 				return 1;
 			}
+			Yii::info('sscanfOutput, !return', 'task-receiver');
+			Yii::error('return 0 (false)', 'task-receiver');
 			return 0;
 		}
 		
