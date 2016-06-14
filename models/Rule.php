@@ -206,11 +206,11 @@ class Rule extends \yii\db\ActiveRecord
 		}
 		
 		public static function execute($id){
-			Yii::info('execute: ' . $id, 'rule');
+			Yii::info('execute id: ' . $id, 'rule');
 			$model = Rule::findOne($id);
 			
 			// Rule Condition
-			
+			Yii::info('condition', 'rule');
 			$modelsRuleCondition = RuleCondition::findAll(['rule_id' => $id]);
 			
 			foreach($modelsRuleCondition as $modelRuleCondition){
@@ -221,46 +221,24 @@ class Rule extends \yii\db\ActiveRecord
 				Yii::info('$modelRuleCondition->value: ' . $modelRuleCondition->value, 'rule');
 				
 				if(!class_exists('app\models\\' . $modelRuleCondition->condition)){
+					Yii::info('!class_exists: ' . 'app\models\\' . $modelRuleCondition->condition, 'rule');
 					return false;
 				}
-				//exit();
-				
-				//$classname = 'app\models\\' . ucfirst($modelRuleCondition->condition);
-				//echo('$classname: ' . $classname) . '<br/>' . PHP_EOL;
-				//echo('$modelRuleCondition->condition: ' . $modelRuleCondition->condition) . '<br/>' . PHP_EOL;
-				//echo('$modelRuleCondition->condition_value: ' . $modelRuleCondition->condition_value) . '<br/>' . PHP_EOL;
-				//exit();
 				
 				$condition = call_user_func(array('app\models\\' . ucfirst($modelRuleCondition->condition), 'ruleCondition'), $modelRuleCondition->condition_value);
 				Yii::info('$condition: ' . $condition, 'rule');
-				
-				var_dump($condition);
-				echo('$condition: <pre>');
-				print_r($condition);
-				echo('</pre>');
-				
-				
+							
 				$values = HelperData::dataExplode($modelRuleCondition->value);
-				var_dump($values);
 				
-				/*
-				'==' => 'Equal',
-				'!=' => 'Not equal',
-				'>=' => 'Bigger or Equal', 
-				'<=' => 'Smaller or Equal', 
-				'>' => 'Bigger', 
-				'<' => 'Smaller',
-				 */
 				// if one of the $values is true relative to the $condition
 				$equation = false;
-				Yii::info('$equation: ' . var_export($equation), 'rule');
+				Yii::info('$equation: ' . json_encode($equation), 'rule'); // json_encode prints true or false
 				
 				foreach ($values as $value){
 					Yii::info('$value: ' . $value, 'rule');
 					
 					$equal = version_compare($condition, $value, $modelRuleCondition->equation);
-					Yii::info('$equal: ' . var_export($equal), 'rule');
-					var_dump($equal);
+					Yii::info('$equal: ' . json_encode($equal), 'rule'); // json_encode prints true or false
 					
 					if($equal){
 						$equation = true;
@@ -273,6 +251,8 @@ class Rule extends \yii\db\ActiveRecord
 				}
 			}
 			
+			// if nothing has returned something, the condition must be gone good
+			Yii::info('action', 'rule');
 			$modelsRuleAction = RuleAction::findAll(['rule_id' => $id]);
 			
 			foreach($modelsRuleAction as $modelRuleAction){
@@ -281,8 +261,33 @@ class Rule extends \yii\db\ActiveRecord
 				Yii::info('$modelRuleAction->action_value: ' . $modelRuleAction->action_value, 'rule');
 				Yii::info('$modelRuleAction->value: ' . $modelRuleAction->value, 'rule');
 				Yii::info('$modelRuleAction->value_value: ' . $modelRuleAction->value_value, 'rule');
+				
+				if(!class_exists('app\models\\' . $modelRuleAction->value)){
+					Yii::info('!class_exists: ' . 'app\models\\' . $modelRuleAction->value, 'rule');
+					return false;
+				}
+				
+				if(!class_exists('app\models\\' . $modelRuleAction->action)){
+					Yii::info('!class_exists: ' . 'app\models\\' . $modelRuleAction->action, 'rule');
+					return false;
+				}
+				
+				// get the value
+				$value = call_user_func(array('app\models\\' . ucfirst($modelRuleAction->value), 'ruleCondition'), $modelRuleAction->value_value);
+				Yii::info('$value: ' . $value, 'rule');
+				// use the value
+				$return = call_user_func(array('app\models\\' . ucfirst($modelRuleAction->action), 'ruleAction'), $modelRuleAction->action_value, $value);
+				Yii::info('$return: ' . json_encode($return), 'rule');
+				
+				if(!$return){
+					return false;
+				}
 			}
-			exit();
+			return true;
+		}
+		
+		public static function cronjob($id){
+			return Rule::execute($id);
 		}
 		
 		public static function getAllIdName(){

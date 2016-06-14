@@ -7,6 +7,8 @@
 
 namespace app\commands;
 
+use Yii;
+
 use yii\console\Controller;
 
 use app\models\Task;
@@ -25,7 +27,7 @@ class ReceiverController extends Controller
      */
     public function actionIndex($output)
     {
-			Yii::info('recieved output', 'task');
+			Yii::info('ReceiverController', 'task-receiver');
 			return Task::receiver(array($output));
     }
 }

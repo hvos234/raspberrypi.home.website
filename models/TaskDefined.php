@@ -110,6 +110,9 @@ class TaskDefined extends \yii\db\ActiveRecord
 			return true;
 		}
 		
+		public static function cronjob($id){
+			return TaskDefined::execute($id);
+		}	
 		
 
 		/*public static function getAll(){

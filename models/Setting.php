@@ -170,9 +170,17 @@ class Setting extends \yii\db\ActiveRecord
 			return HelperData::dataExplode($model->data);
 		}
 
-		public static function ruleAction($id, $value){
+		public static function ruleAction($id, $data){
+			Yii::info('$id: ' . $id, 'rule');
+			Yii::info('$data: ' . $data, 'rule');
+			
 			$model = Setting::findOne($id);
-			$model->data = $value;
-			return $model->save();
+			$model->data = (string)$data;
+			
+			if (!$model->save()){ 
+				print_r($model->errors);
+				return false;
+			}
+			return true;
 		}
 }

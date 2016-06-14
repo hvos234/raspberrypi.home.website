@@ -224,39 +224,35 @@ class Cronjob extends \yii\db\ActiveRecord
 		 * the CronController is call by the server cron
 		 */
 		public function cron(){
-			$cronjobs = Cronjob::find()->orderBy('weight')->asArray()->all();
+			$models = Cronjob::find()->orderBy('weight')->all();
 			
 			// define date, and floor to 5 minutes
 			$now = date('Y-m-d H:i:00', floor(time() / (5 * 60)) * (5 * 60));
 			
-			foreach($cronjobs as $cronjob){
+			foreach($models as $model){
 				
 				// check start_at and end_at is between date now
-				if($cronjob['start_at'] <= $now and ($cronjob['end_at'] >= $now or empty($cronjob['end_at']))){
+				if($model->start_at <= $now and ($model->end_at >= $now or empty($model->end_at))){
 				
 					// add the cronjob time to the run_at, and check if it has to run (has to be lower or equal than now)
-					$run_at = $cronjob['run_at'];
+					$run_at = $model->run_at;
 					
-					$run_at = date('Y-m-d H:i:s', strtotime('+' . $cronjob['recurrence_minute'], strtotime($run_at)));
-					$run_at = date('Y-m-d H:i:s', strtotime('+' . $cronjob['recurrence_hour'], strtotime($run_at)));
-					$run_at = date('Y-m-d H:i:s', strtotime('+' . $cronjob['recurrence_day'], strtotime($run_at)));
-					$run_at = date('Y-m-d H:i:s', strtotime('+' . $cronjob['recurrence_week'], strtotime($run_at)));
-					$run_at = date('Y-m-d H:i:s', strtotime('+' . $cronjob['recurrence_month'], strtotime($run_at)));
-					$run_at = date('Y-m-d H:i:s', strtotime('+' . $cronjob['recurrence_year'], strtotime($run_at)));
+					$run_at = date('Y-m-d H:i:s', strtotime('+' . $model->recurrence_minute, strtotime($run_at)));
+					$run_at = date('Y-m-d H:i:s', strtotime('+' . $model->recurrence_hour, strtotime($run_at)));
+					$run_at = date('Y-m-d H:i:s', strtotime('+' . $model->recurrence_day, strtotime($run_at)));
+					$run_at = date('Y-m-d H:i:s', strtotime('+' . $model->recurrence_week, strtotime($run_at)));
+					$run_at = date('Y-m-d H:i:s', strtotime('+' . $model->recurrence_month, strtotime($run_at)));
+					$run_at = date('Y-m-d H:i:s', strtotime('+' . $model->recurrence_year, strtotime($run_at)));
 					
 					// check if it has to run
 					if($run_at <= $now){
 						// check if the job is correct executed
-						//$executed = false;
-						switch($cronjob['job']){
-							case 'taskdefined':
-								$executed = TaskDefined::execute($cronjob['job_id']);
-						}
+						$executed = call_user_func(array('app\models\\' . ucfirst($model->job), 'cronjob'), $model->job_id);
 						
 						// only update the cronjob if the job is executed correctly
 						//if($executed){
 							// update run_at
-							$model = Cronjob::findOne($cronjob['id']);						
+							//$model = Cronjob::findOne($model->id);						
 							$model->run_at = $now;
 							if (!$model->save()){ 
 								print_r($model->errors);

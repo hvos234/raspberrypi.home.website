@@ -253,9 +253,9 @@ class Data extends Model {
 		$tasks = $taskmodel->getTaskBetweenDate($this->getChartDateFromTo(), $devicemodel->getDeviceMaster()[0]['id'], $this->device_id, $this->action_id);
 		
 		
-		echo('$tasks: <pre>');
+		/*echo('$tasks: <pre>');
 		print_r($tasks);
-		echo('</pre>');
+		echo('</pre>');*/
 		
 		//echo('date(Y-m-d 00:00:00);: ' . date('Y-m-d')) . '<br/>' . PHP_EOL;
 		

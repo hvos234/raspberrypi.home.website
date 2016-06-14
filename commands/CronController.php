@@ -7,6 +7,8 @@
 
 namespace app\commands;
 
+use Yii;
+
 use yii\console\Controller;
 
 use app\models\Cronjob;
@@ -25,6 +27,7 @@ class CronController extends Controller
      */
     public function actionIndex()
     {
+				Yii::info('CronController', 'cronjob');
 				/**
 				 * If cron execute it the default date and time are wrong,
 				 * this fix it (date_default_timezone_set)

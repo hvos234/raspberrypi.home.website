@@ -35,40 +35,48 @@ $config = [
             'useFileTransport' => true,
         ],
         'log' => [
-            //'traceLevel' => YII_DEBUG ? 3 : 0,
+						//'traceLevel' => YII_DEBUG ? 3 : 0,
 						'traceLevel' => 0,
-						//'flushInterval' => 1000, // log immediately
+						'flushInterval' => 1, // log immediately
             'targets' => [
 								[
 										'class' => 'yii\log\FileTarget',
 										'levels' => ['trace', 'info', 'error', 'warning'],
-										//'exportInterval' => 1, // log immediately
+										'exportInterval' => 1, // log immediately
+										'categories' => ['cronjob'],
+										'logFile' => '@app/runtime/logs/web/cronjob.log',
+										'logVars' => [],
+								],
+                [
+										'class' => 'yii\log\FileTarget',
+										'levels' => ['trace', 'info', 'error', 'warning'],
+										'exportInterval' => 1, // log immediately
 										'categories' => ['task'],
-										'logFile' => '@app/runtime/logs/task.log',
+										'logFile' => '@app/runtime/logs/web/task.log',
 										'logVars' => [],
 								],
 								[
 										'class' => 'yii\log\FileTarget',
 										'levels' => ['trace', 'info', 'error', 'warning'],
-										//'exportInterval' => 1, // log immediately
+										'exportInterval' => 1, // log immediately
 										'categories' => ['task-transmitter'],
-										'logFile' => '@app/runtime/logs/task-transmitter.log',
+										'logFile' => '@app/runtime/logs/web/task-transmitter.log',
 										'logVars' => [],
 								],
 								[
 										'class' => 'yii\log\FileTarget',
 										'levels' => ['trace', 'info', 'error', 'warning'],
-										//'exportInterval' => 1, // log immediately
+										'exportInterval' => 1, // log immediately
 										'categories' => ['task-receiver'],
-										'logFile' => '@app/runtime/logs/task-receiver.log',
+										'logFile' => '@app/runtime/logs/web/task-receiver.log',
 										'logVars' => [],
 								],
 								[
 										'class' => 'yii\log\FileTarget',
 										'levels' => ['trace', 'info', 'error', 'warning'],
-										//'exportInterval' => 1, // log immediately
+										'exportInterval' => 1, // log immediately
 										'categories' => ['rule'],
-										'logFile' => '@app/runtime/logs/rule.log',
+										'logFile' => '@app/runtime/logs/web/rule.log',
 										'logVars' => [],
 								],
                 [

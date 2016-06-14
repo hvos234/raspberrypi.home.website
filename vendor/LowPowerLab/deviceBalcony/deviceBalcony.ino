@@ -64,6 +64,8 @@ unsigned long previousPeriod = 0;
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
+  
+  // HomeRFM69
   homerfm69.initialize(FREQUENCY, NODEID, NETWORKID, KEY, PROMISCUOUSMODE, ACK, ACK_RETRIES, ACK_WAIT, TIMEOUT);
   
   // if analog input pin 0 is unconnected, random analog
