@@ -15,7 +15,7 @@ $(document).ready(function(){
     $('#RuleCondition_add').on('click', function() {
         $('.RuleCondition-row').each(function( index ) {
             if('none' == $(this).css('display')){
-                $(this).find('.RuleCondition-value_value').val('');
+                $(this).find('.RuleCondition-value').val('');
                 $(this).css('display', 'table-row');
                 RuleConditionShowHideButton();
                 return false;
@@ -31,9 +31,9 @@ $(document).ready(function(){
     // Oh yeah and set the name and the value fields
     $('#RuleCondition_remove').on('click', function() {
         // first in reverse order
-        $($('.RuleCondition-row').get().reverse()).each(function(index) {
+        $($('.RuleCondition-row').get().reverse()).each(function(index) { 
             if('table-row' == $(this).css('display')){
-                $(this).find('.RuleCondition-value_value').val(tNone);
+                $(this).find('.RuleCondition-value').val(tNone);
                 $(this).css('display', 'none');
                 RuleConditionShowHideButton();
                 return false;
@@ -127,83 +127,6 @@ $(document).ready(function(){
                 $(this).hide();
             }
         });
-    }
-    
-    // RuleCondition Value
-    // 
-    // onchange RuleCondition[0][value] execute 1 to 6
-    // onchange RuleCondition[0][values_values] execute 5 and 6
-    
-    // 1. show or hide the RuleCondition[0][values_values]
-    // 2. show or hide the RuleCondition[0][values_values] optgroups
-    // 3. unselect all the RuleCondition[0][values_values] option
-    // 4. select the right RuleCondition[0][values_values] option
-    // 5. set the RuleCondition[0][value_value] readonly or not
-    // 6. fill the right value from RuleCondition[0][values_values] to 
-    //    RuleCondition[0][value_value]
-    
-    // onchange 
-    $('.RuleCondition-value').on('change', function() {
-        RuleConditionValuesValuesShowHide($(this).attr('index'));
-    });
-    
-    // on page load
-    // show or hide on loading page
-    $('.RuleCondition-value').each(function() {
-        RuleConditionValuesValuesShowHide($(this).attr('index'));
-    });
-    
-    // onchange 
-    $('.RuleCondition-values_values').on('change', function() {
-        RuleConditionValueValue($(this).attr('index'));
-    });
-    
-    // use .prop
-    function RuleConditionValuesValuesShowHide(index){
-        var value = $("select[name='RuleCondition["+index+"][value]']").val();
-        var values_values = $("select[name='RuleCondition["+index+"][values_values]']").val();
-        var value_value = $("input[name='RuleCondition["+index+"][value_value]']").val();
-        
-        $("select[name='RuleCondition["+index+"][values_values]'] optgroup").each(function() {
-            // show the correct values_values optgroup
-            if(value == $(this).attr('label')){
-                $(this).show();
-                
-                // show the correct values_values option
-                var found_option = false;
-                $(this).children("option").each(function() {
-                    if(value_value == $(this).val()){
-                        found_option = true;
-                        $(this).prop('selected', true);
-                    }
-                });
-                if(!found_option){
-                    $(this).children("option").first().prop('selected', true);
-                }
-            }else {
-                $(this).hide();
-            }
-            
-        });
-        
-        RuleConditionValueValue(index);
-    }
-    
-    function RuleConditionValueValue(index){
-        
-        if(tNone != $("input[name='RuleCondition["+index+"][value_value]']").val()){
-            
-            var values_values = $("select[name='RuleCondition["+index+"][values_values]']").val();
-            var value_value = $("select[name='RuleCondition["+index+"][value_value]']").val();
-
-            if('value' == values_values){
-                $("input[name='RuleCondition["+index+"][value_value]']").prop('readonly', false);
-                //$("input[name='RuleCondition["+index+"][value_value]']").val('');
-            }else {
-                $("input[name='RuleCondition["+index+"][value_value]']").prop('readonly', true);
-                $("input[name='RuleCondition["+index+"][value_value]']").val($("select[name='RuleCondition["+index+"][values_values]']").val());
-            }
-        }
     }
     
     // on click Add Action button (RuleAction_add)
@@ -357,12 +280,12 @@ $(document).ready(function(){
     });
         
     // use .prop
-    /*function RuleActionValuesValuesShowHide(index){        
+    function RuleActionValuesValuesShowHide(index){        
         var value_val = $("select[name='RuleAction["+index+"][value]']").val();
         var values_values_val = $("select[name='RuleAction["+index+"][values_values]']").val();
         var values_values_optgroup_label = $("select[name='RuleAction["+index+"][values_values]'] option:selected").parent().attr('label');
         
-        if('value' == values_values_val){
+        if('value' == value_val || 'on' == value_val || 'off' == value_val){
             $("select[name='RuleAction["+index+"][values_values]']").hide();
         }else {
             $("select[name='RuleAction["+index+"][values_values]']").show();
@@ -375,7 +298,7 @@ $(document).ready(function(){
                     // check if this optgroup is not the same as the last condition_value_optgroup
                     // if not select first option
                     var element = $(this);
-                    
+
                     if(values_values_optgroup_label != $(element).attr('label')){
                         $(element).children().first().prop('selected', true);
 
@@ -400,51 +323,29 @@ $(document).ready(function(){
             });
         }
         RuleActionValueValue(index);
-    }*/
-    
-    function RuleActionValuesValuesShowHide(index){
-        var value = $("select[name='RuleAction["+index+"][value]']").val();
-        var values_values = $("select[name='RuleAction["+index+"][values_values]']").val();
-        var value_value = $("input[name='RuleAction["+index+"][value_value]']").val();
-        
-        $("select[name='RuleAction["+index+"][values_values]'] optgroup").each(function() {
-            // show the correct values_values optgroup
-            if(value == $(this).attr('label')){
-                $(this).show();
-                
-                // show the correct values_values option
-                var found_option = false;
-                $(this).children("option").each(function() {
-                    if(value_value == $(this).val()){
-                        found_option = true;
-                        $(this).prop('selected', true);
-                    }
-                });
-                if(!found_option){
-                    $(this).children("option").first().prop('selected', true);
-                }
-            }else {
-                $(this).hide();
-            }
-            
-        });
-        
-        RuleActionValueValue(index);
     }
     
     function RuleActionValueValue(index){
         
         if(tNone != $("input[name='RuleAction["+index+"][value_value]']").val()){
             
-            var values_values = $("select[name='RuleAction["+index+"][values_values]']").val();
-            var value_value = $("select[name='RuleAction["+index+"][value_value]']").val();
+            var value = $("select[name='RuleAction["+index+"][value]']").val();
 
-            if('value' == values_values){
+            if('value' == value){
                 $("input[name='RuleAction["+index+"][value_value]']").prop('readonly', false);
-                //$("input[name='RuleAction["+index+"][value_value]']").val('');
+                $("input[name='RuleAction["+index+"][value_value]']").val('');
+
+            }else if('on' == value){
+                $("input[name='RuleAction["+index+"][value_value]']").prop('readonly', true);
+                $("input[name='RuleAction["+index+"][value_value]']").val('1');
+
+            }else if('off' == value){
+                $("input[name='RuleAction["+index+"][value_value]']").prop('readonly', true);
+                $("input[name='RuleAction["+index+"][value_value]']").val('0');
+
             }else {
                 $("input[name='RuleAction["+index+"][value_value]']").prop('readonly', true);
-                //$("input[name='RuleAction["+index+"][value_value]']").val($("select[name='RuleAction["+index+"][values_values]']").val());
+                $("input[name='RuleAction["+index+"][value_value]']").val($("select[name='RuleAction["+index+"][values_values]']").val());
             }
         }
     }

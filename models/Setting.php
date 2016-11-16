@@ -167,6 +167,10 @@ class Setting extends \yii\db\ActiveRecord
 
 		public static function ruleCondition($id){
 			$model = Setting::findOne($id);
+			echo('$model->data: <pre>');
+				print_r($model->data);
+				echo('</pre>');
+			
 			return HelperData::dataExplode($model->data);
 		}
 

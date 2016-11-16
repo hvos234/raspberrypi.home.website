@@ -62,18 +62,31 @@ class Rule extends \yii\db\ActiveRecord
 		
 	];*/
 	
-	public $conditions_actions = [
-		'date' => 'Date',
-		//'task' => 'Task',
+	/*public $conditions = [
+		'rulevalue' => 'Value',
+		'ruledate' => 'Date',
 		'taskdefined' => 'TaskDefined',
 		'setting' => 'Setting',
 		'rule' => 'Rule',
-		'condition' => 'Condition',
+		'ruleconditions' => 'Conditions',
 	];
 	
+	public $actions = [
+		'rulevalue' => 'Value',
+		'ruledate' => 'Date',
+		'taskdefined' => 'TaskDefined',
+		'setting' => 'Setting',
+		'rule' => 'Rule',
+		'ruleconditions' => 'Conditions',
+	];
 	
-	public $values = [
-		'date' => [
+	public $values_values = [
+		'rulevalue' => [
+			'value' => 'Value',
+			'on' => 'On',
+			'off' => 'Off',
+		],
+		'ruledate' => [
 			// date
 			'd' => 'Day of the month, 2 digits with leading zeros (01 to 31)',
 			//'date(\'j\')' => 'Day of the month without leading zeros (1 to 31)',
@@ -103,27 +116,27 @@ class Rule extends \yii\db\ActiveRecord
 			's' => 'Seconds, with leading zeros (00 through 59)',
 			///'date(\'u\')' => 'Microseconds (654321)',
 		],
-	];
+	];*/
 	
 	public $weights = [];
 
 	public function init() {
-		// add all task
+		/*// add all task
 		//$this->values['task'] = Task::getAllIdId();
 		
 		// add all task defined
-		$this->values['taskdefined'] = TaskDefined::getAllIdName();
+		$this->values_values['taskdefined'] = TaskDefined::getAllIdName();
 		
 		// add all setting
-		$this->values['setting'] = Setting::getAllIdName();
+		$this->values_values['setting'] = Setting::getAllIdName();
 		
-		// add all setting
-		$this->values['condition'] = Condition::getAllIdName();
-		
+		// add all rule conditions
+		$this->values_values['ruleconditions'] = RuleConditions::getAllIdName();
+		*/
 		// translate all
-		foreach ($this->conditions_actions as $condition_action => $name){
+		/*foreach ($this->conditions_actions as $condition_action => $name){
 			$this->conditions_actions[$condition_action] = Yii::t('app', $name);
-		}
+		}*/
 		
 		// create weights
 		$key = 0;
@@ -135,9 +148,9 @@ class Rule extends \yii\db\ActiveRecord
 		$this->weights[$key] = $key;
 		
 		// put all keys from date before description
-		foreach ($this->values['date'] as $key => $description){
-			$this->values['date'][$key] = '(' . $key . ') ' . $description;
-		}
+		/*foreach ($this->values_values['ruledate'] as $key => $description){
+			$this->values_values['ruledate'][$key] = '(' . $key . ') ' . $description;
+		}*/
 		
 		parent::init();
 	}
@@ -206,6 +219,7 @@ class Rule extends \yii\db\ActiveRecord
 		}
 		
 		public static function execute($id){
+			echo('$id: ' . $id) . '<br/>' . PHP_EOL;
 			Yii::info('execute id: ' . $id, 'rule');
 			$model = Rule::findOne($id);
 			
@@ -213,37 +227,73 @@ class Rule extends \yii\db\ActiveRecord
 			Yii::info('condition', 'rule');
 			$modelsRuleCondition = RuleCondition::findAll(['rule_id' => $id]);
 			
+			/*echo('$modelsRuleCondition: <pre>');
+			print_r($modelsRuleCondition);
+			echo('</pre>');*/
+			
+			// condition
 			foreach($modelsRuleCondition as $modelRuleCondition){
 				Yii::info('$modelRuleCondition->id: ' . $modelRuleCondition->id, 'rule');
 				Yii::info('$modelRuleCondition->condition: ' . $modelRuleCondition->condition, 'rule');
 				Yii::info('$modelRuleCondition->condition_value: ' . $modelRuleCondition->condition_value, 'rule');
 				Yii::info('$modelRuleCondition->equation: ' . $modelRuleCondition->equation, 'rule');
 				Yii::info('$modelRuleCondition->value: ' . $modelRuleCondition->value, 'rule');
+				Yii::info('$modelRuleCondition->value_value: ' . $modelRuleCondition->value_value, 'rule');
+				
+				echo('$modelRuleCondition->id: ' . $modelRuleCondition->id) . '<br/>' . PHP_EOL;
+				echo('$modelRuleCondition->condition: ' . $modelRuleCondition->condition) . '<br/>' . PHP_EOL;
+				echo('$modelRuleCondition->condition_value: ' . $modelRuleCondition->condition_value) . '<br/>' . PHP_EOL;
+				echo('$modelRuleCondition->equation: ' . $modelRuleCondition->equation) . '<br/>' . PHP_EOL;
+				echo('$modelRuleCondition->value: ' . $modelRuleCondition->value) . '<br/>' . PHP_EOL;
+				echo('$modelRuleCondition->value_value: ' . $modelRuleCondition->value_value) . '<br/>' . PHP_EOL;
+				
 				
 				if(!class_exists('app\models\\' . $modelRuleCondition->condition)){
 					Yii::info('!class_exists: ' . 'app\models\\' . $modelRuleCondition->condition, 'rule');
 					return false;
 				}
 				
-				$condition = call_user_func(array('app\models\\' . ucfirst($modelRuleCondition->condition), 'ruleCondition'), $modelRuleCondition->condition_value);
-				Yii::info('$condition: ' . $condition, 'rule');
-							
-				$values = HelperData::dataExplode($modelRuleCondition->value);
+				if(!class_exists('app\models\\' . $modelRuleCondition->value)){
+					Yii::info('!class_exists: ' . 'app\models\\' . $modelRuleCondition->value, 'rule');
+					return false;
+				}
 				
+				$conditions = call_user_func(array('app\models\\' . ucfirst($modelRuleCondition->condition), 'ruleCondition'), $modelRuleCondition->condition_value);
+				Yii::info('$conditions: ' . json_encode($conditions), 'rule');
+				echo('$conditions: <pre>');
+				print_r($conditions);
+				echo('</pre>');
+				
+				$conditions_values = call_user_func(array('app\models\\' . ucfirst($modelRuleCondition->value), 'ruleCondition'), $modelRuleCondition->value_value);
+				Yii::info('$conditions_values: ' . json_encode($conditions_values), 'rule');
+				echo('$conditions_values: <pre>');
+				print_r($conditions_values);
+				echo('</pre>');
+								
 				// if one of the $values is true relative to the $condition
 				$equation = false;
 				Yii::info('$equation: ' . json_encode($equation), 'rule'); // json_encode prints true or false
 				
-				foreach ($values as $value){
+				foreach ($conditions_values as $value){
 					Yii::info('$value: ' . $value, 'rule');
 					
-					$equal = version_compare($condition, $value, $modelRuleCondition->equation);
-					Yii::info('$equal: ' . json_encode($equal), 'rule'); // json_encode prints true or false
-					
-					if($equal){
-						$equation = true;
+					foreach($conditions as $condition){
+						
+						echo('$value: ' . $value) . '<br/>' . PHP_EOL;
+						echo('$condition: ' . $condition) . '<br/>' . PHP_EOL;
+						//
+						$equal = version_compare($condition, $value, $modelRuleCondition->equation);
+						Yii::info('$equal: ' . json_encode($equal), 'rule'); // json_encode prints true or false
+
+						if($equal){
+							$equation = true;
+						}
 					}
 				}
+				
+				echo('$equation: ' . $equation) . '<br/>' . PHP_EOL;
+				var_dump($equation);
+				//exit();
 				
 				if(!$equation){
 					Yii::info('!$equation', 'rule');
@@ -251,9 +301,16 @@ class Rule extends \yii\db\ActiveRecord
 				}
 			}
 			
+			echo('condition is: ' . $equation) . '<br/>' . PHP_EOL;
+			
+			
 			// if nothing has returned something, the condition must be gone good
 			Yii::info('action', 'rule');
 			$modelsRuleAction = RuleAction::findAll(['rule_id' => $id]);
+			
+			/*echo('$modelsRuleCondition: <pre>');
+			print_r($modelsRuleCondition);
+			echo('</pre>');*/
 			
 			foreach($modelsRuleAction as $modelRuleAction){
 				Yii::info('$modelRuleAction->id: ' . $modelRuleAction->id, 'rule');
@@ -262,27 +319,48 @@ class Rule extends \yii\db\ActiveRecord
 				Yii::info('$modelRuleAction->value: ' . $modelRuleAction->value, 'rule');
 				Yii::info('$modelRuleAction->value_value: ' . $modelRuleAction->value_value, 'rule');
 				
-				if(!class_exists('app\models\\' . $modelRuleAction->value)){
-					Yii::info('!class_exists: ' . 'app\models\\' . $modelRuleAction->value, 'rule');
-					return false;
-				}
+				echo('$modelRuleAction->id: ' . $modelRuleAction->id) . '<br/>' . PHP_EOL;
+				echo('$modelRuleAction->action: ' . $modelRuleAction->action) . '<br/>' . PHP_EOL;
+				echo('$modelRuleAction->action_value: ' . $modelRuleAction->action_value) . '<br/>' . PHP_EOL;
+				echo('$modelRuleAction->value: ' . $modelRuleAction->value) . '<br/>' . PHP_EOL;
+				echo('$modelRuleAction->value_value: ' . $modelRuleAction->value_value) . '<br/>' . PHP_EOL;
+				//exit();				
 				
 				if(!class_exists('app\models\\' . $modelRuleAction->action)){
 					Yii::info('!class_exists: ' . 'app\models\\' . $modelRuleAction->action, 'rule');
 					return false;
 				}
 				
-				// get the value
-				$value = call_user_func(array('app\models\\' . ucfirst($modelRuleAction->value), 'ruleCondition'), $modelRuleAction->value_value);
-				Yii::info('$value: ' . $value, 'rule');
+				// only retrieve a value if the action is setting
+				$value = '';
+				if('setting' == $modelRuleAction->action){
+					if(!class_exists('app\models\\' . $modelRuleAction->value)){
+						Yii::info('!class_exists: ' . 'app\models\\' . $modelRuleAction->value, 'rule');
+						return false;
+					}
+
+					// get the value
+					$values = call_user_func(array('app\models\\' . ucfirst($modelRuleAction->value), 'ruleCondition'), $modelRuleAction->value_value);
+					Yii::info('$value: ' . $value, 'rule');
+
+					echo('$values: <pre>');
+					print_r($values);
+					echo('</pre>');
+
+					$value = HelperData::dataImplode($values);
+					echo('$value: ' . $value) . '<br/>' . PHP_EOL;
+				}
+				
 				// use the value
 				$return = call_user_func(array('app\models\\' . ucfirst($modelRuleAction->action), 'ruleAction'), $modelRuleAction->action_value, $value);
 				Yii::info('$return: ' . json_encode($return), 'rule');
+				//exit();
 				
 				if(!$return){
 					return false;
 				}
 			}
+			
 			return true;
 		}
 		

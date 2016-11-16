@@ -96,7 +96,7 @@ class RuleController extends Controller
 					$modelsRuleCondition[$i] = new RuleCondition();
 					// if it is not the first one, there must be always one condition
 					if(0 < $i){
-						$modelsRuleCondition[$i]->value = Yii::t('app', '- None -');
+						$modelsRuleCondition[$i]->value_value = Yii::t('app', '- None -');
 						$modelsRuleCondition[$i]->weight = $i;
 					}
 				}
@@ -129,7 +129,7 @@ class RuleController extends Controller
 						$model->save(false);
 						// change the rule_id, and save
 						foreach($modelsRuleCondition as $modelRuleCondition){
-							if(Yii::t('app', '- None -') != $modelRuleCondition->value){
+							if(Yii::t('app', '- None -') != $modelRuleCondition->value_value){
 								$modelRuleCondition->rule_id = $model->id;
 								$modelRuleCondition->save(false);
 							}
@@ -183,7 +183,7 @@ class RuleController extends Controller
 					//echo('$i: ' . $i) . '<br/>' . PHP_EOL;
 					$modelsRuleCondition[$i] = new RuleCondition();
 					$modelsRuleCondition[$i]->rule_id = $id;
-					$modelsRuleCondition[$i]->value = Yii::t('app', '- None -');
+					$modelsRuleCondition[$i]->value_value = Yii::t('app', '- None -');
 					$modelsRuleCondition[$i]->weight = $i;
 				}
 				
@@ -205,7 +205,7 @@ class RuleController extends Controller
 						$model->save(false);
 						// change the rule_id, and save
 						foreach($modelsRuleCondition as $modelRuleCondition){
-							if(Yii::t('app', '- None -') != $modelRuleCondition->value){
+							if(Yii::t('app', '- None -') != $modelRuleCondition->value_value){
 								$modelRuleCondition->rule_id = $model->id;
 								$modelRuleCondition->save(false);
 							}else {

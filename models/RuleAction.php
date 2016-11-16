@@ -24,31 +24,54 @@ use app\models\Setting;
  */
 class RuleAction extends \yii\db\ActiveRecord
 {
-	public $actions = [];
+	public $actions = [
+		'taskdefined' => 'TaskDefined',
+		'setting' => 'Setting',
+		'rule' => 'Rule',
+	];
 	public $actions_values = [];
-	public $values = [];
+	public $values = [
+		'taskdefined' => 'TaskDefined',
+		'setting' => 'Setting',
+		'rule' => 'Rule',
+		'rulevalue' => 'Value',
+		'ruleextra' => 'Extra',
+		'ruledate' => 'Date'
+	];
 	public $values_values = [];
 	public $weights = [];
 	
 	public function init() {
-		// get all actions
-		$modelRule = new Rule();
-		$this->actions = $modelRule->conditions_actions;
-		$this->actions_values = $modelRule->values;
+		// actions
+		// translate
+		foreach ($this->actions as $actions => $name){
+			$this->actions[$actions] = Yii::t('app', $name);
+		}
 		
-		// do not use date
-		unset($this->actions['date']);
-		unset($this->actions_values['date']);
-		// do not use condition
-		unset($this->actions_values['condition']);
-				
-		// get all values
-		$this->values['value'] = Yii::t('app', 'Value');
-		$this->values['on'] = Yii::t('app', 'On');
-		$this->values['off'] = Yii::t('app', 'Off');
-		$this->values = array_merge($this->values, $modelRule->conditions_actions);
+		// actions values
+		$this->actions_values['taskdefined'] = TaskDefined::getAllIdName();
+		$this->actions_values['setting'] = Setting::getAllIdName();
+		$this->actions_values['rule'] = Rule::getAllIdName();
+		$this->actions_values['rulevalue'] = RuleValue::getAllIdName();
+		$this->actions_values['ruleextra'] = RuleExtra::getAllIdName();
+		$this->actions_values['ruledate'] = RuleDate::getAllIdName();
 		
-		$this->values_values = $modelRule->values;
+		// values
+		// translate
+		foreach ($this->values as $values => $name){
+			$this->values[$values] = Yii::t('app', $name);
+		}
+		
+		// values_values
+		$this->values_values['taskdefined'] = TaskDefined::getAllIdName();
+		$this->values_values['setting'] = Setting::getAllIdName();
+		$this->values_values['rule'] = Rule::getAllIdName();
+		$this->values_values['rulevalue'] = RuleValue::getAllIdName();
+		$this->values_values['ruleextra'] = RuleExtra::getAllIdName();
+		$this->values_values['ruledate'] = RuleDate::getAllIdName();
+		
+		//$this->values = array_merge($modelRule->values, $modelRule->actions);
+		//$this->values_values = $modelRule->values;
 		
 		// create weights from 0 to 5
 		for($weight = 0; $weight <= 4; $weight++){

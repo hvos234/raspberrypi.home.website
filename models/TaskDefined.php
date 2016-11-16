@@ -136,4 +136,19 @@ class TaskDefined extends \yii\db\ActiveRecord
 			
 			return $return;
 		}
+		
+		public static function ruleCondition($id){
+			return TaskDefined::ruleExecute($id);
+		}
+
+		public static function ruleAction($id){
+			return TaskDefined::ruleExecute($id);
+		}
+		
+		public static function ruleExecute($id){
+			$model = TaskDefined::findOne($id);
+			$data = Task::execute($model->from_device_id, $model->to_device_id, $model->action_id);
+					
+			return HelperData::dataExplode($data);
+		}
 }

@@ -98,6 +98,7 @@ void loop() {
         sprintf(message, "err:%s", "no ac");
       }
       
+      // Temperature and humidity
       if(ACTIONTEMP == homerfm69.getAction()){
         memset(&temperature, 0, sizeof(temperature)); // clear it
         strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );

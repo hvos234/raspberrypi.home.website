@@ -52,20 +52,38 @@ char message[17];
 
 // Thermostat
 #define THERMOPIN 3     // what pin the Thermostat switch is connected to
-#define THERMOLEDPIN 4     // what pin the Thermostat led is connected to
+#define THERMOSTATPIN A6 // what pin the Thermostat status is connected to
+int thermostatStatusSwitch = 0;
+int thermoSensor = 0;
+float thermoVoltage = 0.0;
 int thermostatStatus = 0;
+int thermostatStatusPrevious = 0;
+
+// fail safe, turn the thermostate every houre of, no matter what
+long thermostatFailSafePeriod = (1000 * 60 * 60); //transmit a packet to gateway so often (in ms) (every 1 hour)
+unsigned long thermostatFailSafeCurrentPeriod = 0;
+unsigned long thermostatFailSafePreviousPeriod = 0;
+
+// Light
+#define LIGHTPIN 5 // what pin the light switch is connected to
+int lightStatusSwitch = 0;
 
 // rest
 #define SERIAL_BAUD 9600
 
 // actions
-#define ACTIONTEMP 1 // send temperature
-#define ACTIONHUM 2 // send humidity
-#define ACTIONTEMPHUM 3 // send temperature and humidity
+//#define ACTIONTEMP 1 // send temperature
+//#define ACTIONHUM 2 // send humidity
+//#define ACTIONTEMPHUM 3 // send temperature and humidity
 
 #define ACTIONTHERMOON 4 // Thermostat on
 #define ACTIONTHERMOOFF 5 // Thermostat off
-#define ACTIONTHERMOSTAT 6 // Thermostat status (if it is on or off)
+#define ACTIONTHERMOSTATSWITCH 6 // Thermostat status switch (if it is on or off)
+#define ACTIONTHERMOSTAT 7 // Thermostat status (if it is on or off)
+
+#define ACTIONLIGHTON 8 // Light on
+#define ACTIONLIGHTOFF 9 // Light off
+#define ACTIONLIGHTSTATSWITCH 10 // Light status switch (if it is on or off)
 
 /*long transPeriod = random(3600000, 3900000); //transmit a packet to gateway so often (in ms) (between 1 houre and 1 houre and 5 minutes)
 unsigned long currentPeriod = 0;
@@ -81,8 +99,11 @@ void setup() {
   pinMode(THERMOPIN, OUTPUT); // sets the digital pin as output, in output mode it can send voltage, in input mode only receives it
   digitalWrite(THERMOPIN, LOW); // turn thermostate off
   
-  pinMode(THERMOLEDPIN, OUTPUT);
-  digitalWrite(THERMOLEDPIN, LOW);
+  pinMode(THERMOSTATPIN, INPUT); // sets the analog pin as input, it only have to receive it
+  
+  // Light
+  pinMode(LIGHTPIN, OUTPUT); // sets the digital pin as output, in output mode it can send voltage, in input mode only receives it
+  digitalWrite(LIGHTPIN, LOW); // turn thermostate off
   
   // if analog input pin 0 is unconnected, random analog
   // noise will cause the call to randomSeed() to generate
@@ -110,11 +131,12 @@ void loop() {
       sprintf(message, "err:rfm69,%d", homerfm69.getErrorId());
     }else {
       
-      if(ACTIONTEMP != homerfm69.getAction() && ACTIONHUM != homerfm69.getAction() && ACTIONTEMPHUM != homerfm69.getAction() && ACTIONTHERMOON != homerfm69.getAction() && ACTIONTHERMOOFF != homerfm69.getAction()  && ACTIONTHERMOSTAT != homerfm69.getAction()){
+      if(ACTIONTHERMOON != homerfm69.getAction() && ACTIONTHERMOOFF != homerfm69.getAction() && ACTIONTHERMOSTATSWITCH != homerfm69.getAction() && ACTIONTHERMOSTAT != homerfm69.getAction() && ACTIONLIGHTON != homerfm69.getAction() && ACTIONLIGHTOFF != homerfm69.getAction() && ACTIONLIGHTSTATSWITCH != homerfm69.getAction()){
         sprintf(message, "err:%s", "no ac");
       }
       
-      if(ACTIONTEMP == homerfm69.getAction()){
+      // Temperature and humidity
+      /*if(ACTIONTEMP == homerfm69.getAction()){
         memset(&temperature, 0, sizeof(temperature)); // clear it
         strncpy( temperature, homedht.getTemperature(1), sizeof(temperature)-1 );
   
@@ -155,32 +177,57 @@ void loop() {
             sprintf(message, "t:%s,h:%s", temperature, humdity);
           }
         }
-      }
+      }*/
       
+      // Thermostat
       if(ACTIONTHERMOON == homerfm69.getAction()){
         digitalWrite(THERMOPIN, HIGH);
-        digitalWrite(THERMOLEDPIN, HIGH);
-        sprintf(message, "%d", 1);
+        sprintf(message, "on:%d", 1);
       }
       
       if(ACTIONTHERMOOFF == homerfm69.getAction()){
         digitalWrite(THERMOPIN, LOW);
-        digitalWrite(THERMOLEDPIN, LOW);
-        sprintf(message, "%d", 0);
+        sprintf(message, "off:%d", 0);
+      }
+      
+      if(ACTIONTHERMOSTATSWITCH == homerfm69.getAction()){
+        thermostatStatusSwitch = digitalRead(THERMOPIN); 
+        
+        if(0 == thermostatStatusSwitch){
+          sprintf(message, "ss:%d", 1); // is on
+        }else {
+          sprintf(message, "ss:%d", 0); // is off
+        }        
       }
       
       if(ACTIONTHERMOSTAT == homerfm69.getAction()){
-        thermostatStatus = digitalRead(THERMOPIN);
-        //Serial.print("Thermostat Status:  ");
-        //Serial.println(thermostatStatus);
+        thermostatStatus = digitalRead(THERMOSTATPIN); 
         
-        //Serial.print("Thermostat bitRead:  ");
-        //Serial.println(bitRead(PORTD,THERMOPIN)); 
-        
-        if(0 == thermostatStatus){
-          sprintf(message, "%d", 1); // is on
+        if(1 == thermostatStatus){
+          sprintf(message, "s:%d", 1); // is on
         }else {
-          sprintf(message, "%d", 0); // is off
+          sprintf(message, "s:%d", 0); // is off
+        }        
+      }
+      
+      // light
+      if(ACTIONLIGHTON == homerfm69.getAction()){
+        digitalWrite(LIGHTPIN, HIGH);
+        sprintf(message, "on:%d", 1);
+      }
+      
+      if(ACTIONLIGHTOFF == homerfm69.getAction()){
+        digitalWrite(LIGHTPIN, LOW);
+        sprintf(message, "off:%d", 0);
+      }
+      
+      if(ACTIONLIGHTSTATSWITCH == homerfm69.getAction()){
+        lightStatusSwitch = digitalRead(LIGHTPIN); 
+        
+        if(0 == lightStatusSwitch){
+          sprintf(message, "ls:%d", 1); // is on
+        }else {
+          sprintf(message, "ls:%d", 0); // is off
         }        
       }
     }
@@ -193,6 +240,71 @@ void loop() {
     
     bool success;
     success = homerfm69.sendWithRetry(homerfm69.getSenderId(), payload, strlen(payload)+2);
+    
+    if(homerfm69.getError()){
+      Serial.print("err:rfm69,");
+      Serial.println(homerfm69.getErrorId());
+    }
+  }
+    
+  // Thermostate status
+  thermoSensor = analogRead(THERMOSTATPIN);
+  thermoVoltage = thermoSensor * (5.0 / 1023.0);
+  if(1.00 > thermoVoltage){
+    thermostatStatus = 1; // is on
+  }else {
+    thermostatStatus = 0; // is off
+  }
+  
+  if(thermostatStatus != thermostatStatusPrevious){
+    thermostatStatusPrevious = thermostatStatus;
+    
+    memset(&message, 0, sizeof(message)); // clear it
+    
+    if(1 == thermostatStatus){
+      sprintf(message, "s:%d", 1); // is on
+    }else {
+      sprintf(message, "s:%d", 0); // is off
+    }
+    
+    memset(&payload, 0, sizeof(payload)); // clear it
+    sprintf(payload, "ac:%d;msg:%s", ACTIONTHERMOSTAT, message);
+    
+    Serial.print("Sending:  ");
+    Serial.println(payload);
+    
+    bool success;
+    success = homerfm69.sendWithRetry(1, payload, strlen(payload)+2);
+    delay(1000);
+    
+    if(homerfm69.getError()){
+      Serial.print("err:rfm69,");
+      Serial.println(homerfm69.getErrorId());
+    }
+  }
+  
+  // fail safe, turn thermostate of every hour
+  unsigned long thermostatFailSafeCurrentPeriod = millis();
+  if (thermostatFailSafeCurrentPeriod - thermostatFailSafePreviousPeriod >= thermostatFailSafePeriod || thermostatFailSafeCurrentPeriod < thermostatFailSafePreviousPeriod) {
+    thermostatFailSafePreviousPeriod = thermostatFailSafeCurrentPeriod;
+    
+    memset(&message, 0, sizeof(message)); // clear it
+    
+    // Thermostat
+    digitalWrite(THERMOPIN, HIGH);
+    sprintf(message, "on:%d", 1);
+    
+    //digitalWrite(THERMOPIN, LOW);
+    //sprintf(message, "off:%d", 0);
+    
+    memset(&payload, 0, sizeof(payload)); // clear it
+    sprintf(payload, "ac:%d;msg:%s", homerfm69.getAction(), message);
+    
+    Serial.print("Sending:  ");
+    Serial.println(payload);
+    
+    bool success;
+    success = homerfm69.sendWithRetry(1, payload, strlen(payload)+2);
     
     if(homerfm69.getError()){
       Serial.print("err:rfm69,");

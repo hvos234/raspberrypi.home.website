@@ -6,13 +6,14 @@ use Yii;
 use yii\base\Model;
 
 // Models
+use app\models\Rule;
 use app\models\Condition;
 use app\models\Setting;
 
 // The ArrayHelper, is used for building a map (key-value pairs).
 use yii\helpers\ArrayHelper;
 
-class Condition extends Model {
+class RuleExtra extends Model {
 	
 	public static function models(){
 		// the array key must be the same as the id
@@ -22,13 +23,17 @@ class Condition extends Model {
 	}
 	
 	public static function all(){
-			return Condition::models();
+			return RuleExtra::models();
 	}
 	
 	public static function one($id){
-		$models = Condition::all();
+		$models = RuleExtra::all();
+		var_dump($id);
+		var_dump($models);
+		
 		foreach($models as $model){
-			if($model->id == $id){
+			echo('$model->id: ' . $model->id . ' == $id: ' . $id) . '<br/>' . PHP_EOL;
+			if((string)$model->id == $id){
 				return $model;
 			}
 		}
@@ -36,26 +41,32 @@ class Condition extends Model {
 	}
 	
 	public static function getAllIdName(){
-		return ArrayHelper::map(Condition::all(), 'id', 'name');
+		return ArrayHelper::map(RuleExtra::all(), 'id', 'name');
 	}
 	
 	public static function execute($id){
-		$model = Condition::one($id);
-		return call_user_func('app\models\Condition::' . $model->function); // use app\models\ or else it cannot find class
-	}
-	
-	public static function rule($id){
-		return Condition::execute($id);
+		echo('RuleExtra $id: ' . $id) . '<br/>' . PHP_EOL;
+		$model = RuleExtra::one($id);
+		echo('<pre>');
+		print_r($model);
+		echo('</pre>');
+		//exit();
+		
+		return call_user_func('app\models\RuleExtra::' . $model->function); // use app\models\ or else it cannot find class
 	}
 	
 	public static function ruleCondition($id){
-		return Condition::rule($id);
+		return RuleExtra::ruleExecute($id);
 	}
 	
 	public static function ruleAction($id){
-		return Condition::rule($id);
+		return RuleExtra::ruleExecute($id);
 	}
 
+	public static function ruleExecute($id){
+		return RuleExtra::execute($id);		
+	}
+	
 	public static function IamReallyAthome(){
 		$ip_addressen = Setting::find()->select('data')->where(['name' => 'i_am_really_at_home_ip_addressen'])->one();
 		$ip_addressen = HelperData::dataExplode($ip_addressen->data);
@@ -70,10 +81,6 @@ class Condition extends Model {
 			}
 		}
 		
-		return $iamathome;
-	}
-	
-	public static function ruleExecute(){
-		
+		return HelperData::dataExplode($iamathome);
 	}
 }
